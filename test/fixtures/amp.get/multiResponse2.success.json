@@ -1,0 +1,46 @@
+{
+    "name": "image_group_multi2",
+    "items": [
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/cat",
+            "width": 1600,
+            "height": 1067,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/jump",
+            "width": 1600,
+            "height": 1067,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/building",
+            "width": 3872,
+            "height": 2592,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/field",
+            "width": 2056,
+            "height": 1536,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/camera",
+            "width": 1600,
+            "height": 1065,
+            "format": "JPEG",
+            "opaque": "true"
+        }
+    ],
+    "url": "http://example.com/s/fake_client/image_group_multi2"
+}

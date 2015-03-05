@@ -1,0 +1,89 @@
+{
+    "name": "dune",
+    "items": [
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/1",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/4",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "set",
+            "name": "spin",
+            "setType": "spin",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/s\/processJobs_01\/spin",
+            "set": {
+                "type": "list",
+                "items": [
+                    {
+                        "type": "img",
+                        "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/1",
+                        "width": 2000,
+                        "height": 2000,
+                        "format": "JPEG",
+                        "opaque": "true"
+                    },
+                    {
+                        "type": "img",
+                        "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/5",
+                        "width": 2000,
+                        "height": 2000,
+                        "format": "JPEG",
+                        "opaque": "true"
+                    },
+                    {
+                        "type": "img",
+                        "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/4",
+                        "width": 2000,
+                        "height": 2000,
+                        "format": "JPEG",
+                        "opaque": "true"
+                    }
+                ],
+                "name": "spin"
+            }
+        },
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/5",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/6",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/2",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http:\/\/i1-orig-qa.adis.ws\/i\/processJobs_01\/3",
+            "width": 2000,
+            "height": 2000,
+            "format": "JPEG",
+            "opaque": "true"
+        }
+    ]
+}

@@ -1,0 +1,50 @@
+{
+    "name": "set_with_video2",
+    "items": [
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/cat",
+            "width": 1600,
+            "height": 1067,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/jump",
+            "width": 1600,
+            "height": 1067,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/building",
+            "width": 3872,
+            "height": 2592,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "img",
+            "src": "http://i1-orig-qa.adis.ws/i/chris_test_2/field",
+            "width": 2056,
+            "height": 1536,
+            "format": "JPEG",
+            "opaque": "true"
+        },
+        {
+            "type": "video",
+            "name": "test_video2",
+            "src": "http://example.com/v/fake_client/test_video",
+            "title": "test_video.mp4",
+            "updated": "2014-01-07 11:27:47",
+            "duration": 43007,
+            "description": "",
+            "mainLink": null,
+            "mainThumb": {
+                "src": "http://example.com/v/fake_client/test_video/thumbs/b90a7b1e-c91f-4aa1-8729-5a7f217fa62c"
+            }
+        }
+    ]
+}

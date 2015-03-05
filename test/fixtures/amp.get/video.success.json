@@ -1,0 +1,460 @@
+{"id": "007c61e4-9365-43f0-b559-bba2eb72020a", "meta": {
+    "title": "test_video.mp4",
+    "updated": "2014-01-07 11:27:47",
+    "duration": 43007,
+    "description": "",
+    "mainLink": "",
+    "mainThumb": {
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/b90a7b1e-c91f-4aa1-8729-5a7f217fa62c"
+    }
+}, "media": [
+    {
+        "src": "http://i1.adis.ws/v/fake_client/test_video/mp4_480p",
+        "profile": "mp4_480p",
+        "profileLabel": "Medium",
+        "protocol": "http",
+        "updated": 1389094128,
+        "bitrate": "618",
+        "width": "854",
+        "height": "480",
+        "size": "3328718",
+        "format": "mpeg4",
+        "video.codec": "h264",
+        "audio.codec": "aac",
+        "audio.channels": "2",
+        "aspect": null
+    },
+    {
+        "src": "http://i1.adis.ws/v/fake_client/test_video/mp4_720p",
+        "profile": "mp4_720p",
+        "profileLabel": "High",
+        "protocol": "http",
+        "updated": 1389094129,
+        "bitrate": "2029",
+        "width": "1280",
+        "height": "718",
+        "size": "10891134",
+        "format": "mpeg4",
+        "video.codec": "h264",
+        "audio.codec": "aac",
+        "audio.channels": "2",
+        "aspect": null
+    },
+    {
+        "src": "http://i1.adis.ws/v/fake_client/test_video/mp4_240p",
+        "profile": "mp4_240p",
+        "profileLabel": "Low",
+        "protocol": "http",
+        "updated": 1389094118,
+        "bitrate": "339",
+        "width": "426",
+        "height": "240",
+        "size": "1836110",
+        "format": "mpeg4",
+        "video.codec": "h264",
+        "audio.codec": "aac",
+        "audio.channels": "2",
+        "aspect": null
+    }
+], "thumbs": [
+    {
+        "time": 0,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0000"
+    },
+    {
+        "time": 429,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0001"
+    },
+    {
+        "time": 858,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0002"
+    },
+    {
+        "time": 1287,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0003"
+    },
+    {
+        "time": 1716,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0004"
+    },
+    {
+        "time": 2145,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0005"
+    },
+    {
+        "time": 2574,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0006"
+    },
+    {
+        "time": 3003,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0007"
+    },
+    {
+        "time": 3432,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0008"
+    },
+    {
+        "time": 3861,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0009"
+    },
+    {
+        "time": 4290,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0010"
+    },
+    {
+        "time": 4719,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0011"
+    },
+    {
+        "time": 5148,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0012"
+    },
+    {
+        "time": 5577,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0013"
+    },
+    {
+        "time": 6006,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0014"
+    },
+    {
+        "time": 6435,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0015"
+    },
+    {
+        "time": 6864,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0016"
+    },
+    {
+        "time": 7293,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0017"
+    },
+    {
+        "time": 7722,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0018"
+    },
+    {
+        "time": 8151,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0019"
+    },
+    {
+        "time": 8580,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0020"
+    },
+    {
+        "time": 9009,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0021"
+    },
+    {
+        "time": 9438,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0022"
+    },
+    {
+        "time": 9867,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0023"
+    },
+    {
+        "time": 10296,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0024"
+    },
+    {
+        "time": 10725,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0025"
+    },
+    {
+        "time": 11154,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0026"
+    },
+    {
+        "time": 11583,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0027"
+    },
+    {
+        "time": 12012,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0028"
+    },
+    {
+        "time": 12441,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0029"
+    },
+    {
+        "time": 12870,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0030"
+    },
+    {
+        "time": 13299,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0031"
+    },
+    {
+        "time": 13728,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0032"
+    },
+    {
+        "time": 14157,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0033"
+    },
+    {
+        "time": 14586,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0034"
+    },
+    {
+        "time": 15015,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0035"
+    },
+    {
+        "time": 15444,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0036"
+    },
+    {
+        "time": 15873,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0037"
+    },
+    {
+        "time": 16302,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0038"
+    },
+    {
+        "time": 16731,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0039"
+    },
+    {
+        "time": 17160,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0040"
+    },
+    {
+        "time": 17589,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0041"
+    },
+    {
+        "time": 18018,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0042"
+    },
+    {
+        "time": 18447,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0043"
+    },
+    {
+        "time": 18876,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0044"
+    },
+    {
+        "time": 19305,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0045"
+    },
+    {
+        "time": 19734,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0046"
+    },
+    {
+        "time": 20163,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0047"
+    },
+    {
+        "time": 20592,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0048"
+    },
+    {
+        "time": 21021,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0049"
+    },
+    {
+        "time": 21450,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0050"
+    },
+    {
+        "time": 21879,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0051"
+    },
+    {
+        "time": 22308,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0052"
+    },
+    {
+        "time": 22737,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0053"
+    },
+    {
+        "time": 23166,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0054"
+    },
+    {
+        "time": 23595,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0055"
+    },
+    {
+        "time": 24024,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0056"
+    },
+    {
+        "time": 24453,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0057"
+    },
+    {
+        "time": 24882,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0058"
+    },
+    {
+        "time": 25311,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0059"
+    },
+    {
+        "time": 25740,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0060"
+    },
+    {
+        "time": 26169,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0061"
+    },
+    {
+        "time": 26598,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0062"
+    },
+    {
+        "time": 27027,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0063"
+    },
+    {
+        "time": 27456,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0064"
+    },
+    {
+        "time": 27885,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0065"
+    },
+    {
+        "time": 28314,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0066"
+    },
+    {
+        "time": 28743,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0067"
+    },
+    {
+        "time": 29172,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0068"
+    },
+    {
+        "time": 29601,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0069"
+    },
+    {
+        "time": 30030,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0070"
+    },
+    {
+        "time": 30459,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0071"
+    },
+    {
+        "time": 30888,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0072"
+    },
+    {
+        "time": 31317,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0073"
+    },
+    {
+        "time": 31746,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0074"
+    },
+    {
+        "time": 32175,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0075"
+    },
+    {
+        "time": 32604,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0076"
+    },
+    {
+        "time": 33033,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0077"
+    },
+    {
+        "time": 33462,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0078"
+    },
+    {
+        "time": 33891,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0079"
+    },
+    {
+        "time": 34320,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0080"
+    },
+    {
+        "time": 34749,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0081"
+    },
+    {
+        "time": 35178,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0082"
+    },
+    {
+        "time": 35607,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0083"
+    },
+    {
+        "time": 36036,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0084"
+    },
+    {
+        "time": 36465,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0085"
+    },
+    {
+        "time": 36894,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0086"
+    },
+    {
+        "time": 37323,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0087"
+    },
+    {
+        "time": 37752,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0088"
+    },
+    {
+        "time": 38181,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0089"
+    },
+    {
+        "time": 38610,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0090"
+    },
+    {
+        "time": 39039,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0091"
+    },
+    {
+        "time": 39468,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0092"
+    },
+    {
+        "time": 39897,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0093"
+    },
+    {
+        "time": 40326,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0094"
+    },
+    {
+        "time": 40755,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0095"
+    },
+    {
+        "time": 41184,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0096"
+    },
+    {
+        "time": 41613,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0097"
+    },
+    {
+        "time": 42042,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0098"
+    },
+    {
+        "time": 42471,
+        "src": "http://i1.adis.ws/v/fake_client/test_video/thumbs/frame_0099"
+    }
+]}

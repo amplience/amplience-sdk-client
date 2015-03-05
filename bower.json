@@ -1,0 +1,22 @@
+{
+    "name": "amplience-sdk-client",
+    "private": true,
+    "version": "0.1.0",
+    "devDependencies": {
+        "jasmine-jquery": "~1.7.0",
+        "es6-promise": "~1.0.0",
+        "jquery": "1.10.0",
+        "jquery-ui": "1.10.0",
+        "video.js": "4.4.0"
+    },
+    "ignore": ["assets/*",
+        "css/*",
+        "src/*",
+        "test/*",
+        ".gitignore",
+        "Gruntfile.js",
+        "package.json",
+        "sdk-client.iml",
+        "sdk-client.ipr"
+    ]
+}
