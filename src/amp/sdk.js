@@ -17,6 +17,7 @@ var amp = amp || {};
 //import "sdk-init.js"
 //import "sdk-shared-methods.js"
 //import "sdk-get.js"
+//import "sdk-content.js"
 //import "sdk-gen-html.js"
 //import "sdk-di.js"
 //import "sdk-analytics.js"

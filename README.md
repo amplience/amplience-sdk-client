@@ -281,7 +281,7 @@ Javascript code:
 
 #Putting it all together
 
-To see examples of all this in action please visit the [playground website](http://playground.amplience.com/sdk).
+To see examples of all this in action please visit the [playground website](http://playground.amplience.com/sdk/docs).
 
 #Licence
 
