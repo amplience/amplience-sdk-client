@@ -252,8 +252,13 @@
                 return;
             }
             if(this.scale == 1) {
-                $(document).off(this.options.events.move, this._setPos);
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                if (this.options.events.move) {
+                    $(document).off(this.options.events.move, this._setPos);
+                }
+
+                if (this.options.events.zoomOut,this.zoomOut) {
+                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                }
             }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -263,8 +268,14 @@
             if (!this.zoomArea) {
                 return;
             }
-            $(document).off(this.options.events.move, this._setPos);
-            $(document).off(this.options.events.zoomOut,this.zoomOut);
+            if (this.options.events.move) {
+                $(document).off(this.options.events.move, this._setPos);
+            }
+
+            if (this.options.events.zoomOut, this.zoomOut) {
+                $(document).off(this.options.events.zoomOut,this.zoomOut);
+            }
+
             this.scale = 1;
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
