@@ -2962,7 +2962,7 @@
                     $(document).off(this.options.events.move, this._setPos);
                 }
 
-                if (this.options.events.zoomOut,this.zoomOut) {
+                if (this.options.events.zoomOut) {
                     $(document).off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
@@ -2978,7 +2978,7 @@
                 $(document).off(this.options.events.move, this._setPos);
             }
 
-            if (this.options.events.zoomOut, this.zoomOut) {
+            if (this.options.events.zoomOut) {
                 $(document).off(this.options.events.zoomOut,this.zoomOut);
             }
 
