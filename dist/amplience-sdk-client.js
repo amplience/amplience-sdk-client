@@ -10,7 +10,6 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
-
 /**
  * Polyfills for IE
  *
@@ -81,7 +80,6 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
-
 
 
 
@@ -909,7 +907,6 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
-
 (function(){
 /**
  * Creates a url to an asset
@@ -1562,7 +1559,6 @@ var webCacheSize = function (data) {
 
 
 
-
 }());
 (function () {
     /**
@@ -1984,7 +1980,6 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
-
 
 /**
  * Binds a callback to a set of events which can be filtered
@@ -5000,8 +4995,13 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             if(this.scale == 1) {
-                $(document).off(this.options.events.move, this._setPos);
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                if (this.options.events.move) {
+                    $(document).off(this.options.events.move, this._setPos);
+                }
+
+                if (this.options.events.zoomOut) {
+                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                }
             }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -5011,8 +5011,14 @@ amp.stats.event = function(dom,type,event,value){
             if (!this.zoomArea) {
                 return;
             }
-            $(document).off(this.options.events.move, this._setPos);
-            $(document).off(this.options.events.zoomOut,this.zoomOut);
+            if (this.options.events.move) {
+                $(document).off(this.options.events.move, this._setPos);
+            }
+
+            if (this.options.events.zoomOut) {
+                $(document).off(this.options.events.zoomOut,this.zoomOut);
+            }
+
             this.scale = 1;
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
