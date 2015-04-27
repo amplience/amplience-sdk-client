@@ -2112,6 +2112,11 @@ amp.stats.event = function(dom,type,event,value){
                     if (e.originalEvent.touches.length!=this.options.gesture.fingers)
                         return true;
                 }
+
+                if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.type === 'range') {
+                    return true;
+                }
+
                 this.changed = false;
                 this.moved = false;
                 this.startTouchEvent = e;
