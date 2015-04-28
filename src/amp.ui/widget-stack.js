@@ -241,7 +241,9 @@
                 var method = this._asyncMethods.splice(0,1)[0];
                 if(method.func && method.args) {
                     setTimeout(function(){
-                        method.func.apply(self,method.args);
+                        if (method && method.func) {
+                            method.func.apply(self,method.args);
+                        }
                     },count);
                     count++
                 }
