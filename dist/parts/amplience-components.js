@@ -1766,13 +1766,14 @@
             this.imgs = [];
             var i = 0;
             do{
-                this.imgs.push($('<img class="amp-zoom-img">'));
-                this.imgs[i].css(reset);
-
+				var img = $('<img class="amp-zoom-img">');
+				img.css(reset); 
+				this.wrapper.append(img); 
+                this.imgs.push(img);
                 i++;
             }while(i < (this._cycle && this._cycle.len));
 
-            this.wrapper.append(this.imgs);
+       
             if(this.options.responsive){
                 this.element.css({ height:'auto', width:'100%', maxWidth:'100%' });
             }
