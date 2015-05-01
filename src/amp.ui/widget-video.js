@@ -142,6 +142,7 @@
                         self._player.play();
                         self._track("looped", { count: ++self._loopCount });
                     }else{
+                        self.state(self._states.stopped);
                         self._track("ended", null);
                     }
                 });
