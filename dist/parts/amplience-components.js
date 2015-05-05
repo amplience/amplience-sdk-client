@@ -3327,6 +3327,7 @@
             error:5,
             idle:6
         },
+        _currentState: 0,
         _ready: false,
         _loopCount: 0,
         _savedHTML:'',
@@ -3446,6 +3447,7 @@
                         self._player.play();
                         self._track("looped", { count: ++self._loopCount });
                     }else{
+                        self.state(self._states.stopped);
                         self._track("ended", null);
                     }
                 });
