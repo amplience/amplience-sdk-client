@@ -10,6 +10,7 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
+
 /**
  * Polyfills for IE
  *
@@ -80,6 +81,7 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
+
 
 
 
@@ -907,6 +909,7 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
+
 (function(){
 /**
  * Creates a url to an asset
@@ -1559,6 +1562,7 @@ var webCacheSize = function (data) {
 
 
 
+
 }());
 (function () {
     /**
@@ -1980,6 +1984,7 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
+
 
 /**
  * Binds a callback to a set of events which can be filtered
@@ -5294,13 +5299,12 @@ amp.stats.event = function(dom,type,event,value){
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
-            this.newSize = {'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale};
+            this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
             this.$zoomed.attr('src',this.$source.attr('src'));
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
-                this.$zoomed.height(this.$source.height());
                 this.$zoomed.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
@@ -5312,7 +5316,7 @@ amp.stats.event = function(dom,type,event,value){
             this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
-        this.invalidateImageURL();
+        this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
     };
 
     zoomArea.prototype.show = function(){
@@ -5327,9 +5331,9 @@ amp.stats.event = function(dom,type,event,value){
         $(window).off('resize', this.invalidatePosition);
     };
 
-    zoomArea.prototype.invalidateImageURL = function() {
-        var src = this.initialSrc.split('?')[0]+'?w='+this.newSize.x+'&h='+this.newSize.y+'&'+this.transforms;
-        if(this.newSize.x == 0 || this.newSize.y ==0) {
+    zoomArea.prototype.invalidateImageURL = function(size) {
+        var src = this.initialSrc.split('?')[0]+'?w='+size.x+'&h='+size.y+'&'+this.transforms;
+        if(size.x == 0 || size.y ==0) {
             src='';
         }
         this.$preloader.attr('src',src);

@@ -3257,13 +3257,12 @@
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
-            this.newSize = {'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale};
+            this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
             this.$zoomed.attr('src',this.$source.attr('src'));
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
-                this.$zoomed.height(this.$source.height());
                 this.$zoomed.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
@@ -3275,7 +3274,7 @@
             this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
-        this.invalidateImageURL();
+        this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
     };
 
     zoomArea.prototype.show = function(){
@@ -3290,9 +3289,9 @@
         $(window).off('resize', this.invalidatePosition);
     };
 
-    zoomArea.prototype.invalidateImageURL = function() {
-        var src = this.initialSrc.split('?')[0]+'?w='+this.newSize.x+'&h='+this.newSize.y+'&'+this.transforms;
-        if(this.newSize.x == 0 || this.newSize.y ==0) {
+    zoomArea.prototype.invalidateImageURL = function(size) {
+        var src = this.initialSrc.split('?')[0]+'?w='+size.x+'&h='+size.y+'&'+this.transforms;
+        if(size.x == 0 || size.y ==0) {
             src='';
         }
         this.$preloader.attr('src',src);
