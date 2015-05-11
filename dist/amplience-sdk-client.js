@@ -10,7 +10,6 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
-
 /**
  * Polyfills for IE
  *
@@ -81,7 +80,6 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
-
 
 
 
@@ -909,7 +907,6 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
-
 (function(){
 /**
  * Creates a url to an asset
@@ -1562,7 +1559,6 @@ var webCacheSize = function (data) {
 
 
 
-
 }());
 (function () {
     /**
@@ -1985,7 +1981,6 @@ var webCacheSize = function (data) {
 var aEvents = [];
 aEvents.all = [];
 
-
 /**
  * Binds a callback to a set of events which can be filtered
  * (e.g. {type:slider,cb:function} will bind cb to all slider events
@@ -2117,6 +2112,11 @@ amp.stats.event = function(dom,type,event,value){
                     if (e.originalEvent.touches.length!=this.options.gesture.fingers)
                         return true;
                 }
+
+                if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.type === 'range') {
+                    return true;
+                }
+
                 this.changed = false;
                 this.moved = false;
                 this.startTouchEvent = e;
