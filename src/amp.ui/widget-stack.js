@@ -106,6 +106,9 @@
                     if (e.originalEvent.touches.length!=this.options.gesture.fingers)
                         return true;
                 }
+                if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.type === 'range') {
+                    return true;
+                }
                 this.moved = true;
                 this.lastEvent = e;
                 e = this._getEvent(e);
