@@ -144,6 +144,37 @@
                     autoWatch: true
                 }
             },
+            test: {
+                options: {
+                    frameworks: ["jasmine"],
+
+                    files: [
+                        'bower_components/jquery/jquery.js',
+                        'bower_components/jquery-ui/ui/jquery.ui.widget.js',
+                        'bower_components/video.js/dist/video-js/video.dev.js',
+                        'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
+                        'test/amp/SDK.min.js',
+                        'test/amp.ui/components.min.js',
+                        'test/**/*.js',
+                        {
+                            pattern: 'test/fixtures/**/*.json',
+                            watched: true,
+                            included: false,
+                            served:true
+                        },
+                        {
+                            pattern: 'dist/**/*.css',
+                            watched: false,
+                            included: false,
+                            served:true
+                        }
+                    ],
+                    reporters: ['progress', 'coverage'],
+                    browsers:['Chrome'],
+                    singleRun: true,
+                    autoWatch: false
+                }
+            },            
             teamcity: {
                 options: {
                     frameworks: ["jasmine"],
