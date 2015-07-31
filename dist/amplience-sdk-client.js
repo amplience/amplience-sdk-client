@@ -10,7 +10,6 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
-
 /**
  * Polyfills for IE
  *
@@ -81,7 +80,6 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
-
 
 
 
@@ -909,7 +907,6 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
-
 (function(){
 /**
  * Creates a url to an asset
@@ -1562,7 +1559,6 @@ var webCacheSize = function (data) {
 
 
 
-
 }());
 (function () {
     /**
@@ -1984,7 +1980,6 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
-
 
 /**
  * Binds a callback to a set of events which can be filtered
@@ -5351,6 +5346,7 @@ amp.stats.event = function(dom,type,event,value){
             error:5,
             idle:6
         },
+        _currentState: 0,
         _ready: false,
         _loopCount: 0,
         _savedHTML:'',
@@ -5470,6 +5466,7 @@ amp.stats.event = function(dom,type,event,value){
                         self._player.play();
                         self._track("looped", { count: ++self._loopCount });
                     }else{
+                        self.state(self._states.stopped);
                         self._track("ended", null);
                     }
                 });
