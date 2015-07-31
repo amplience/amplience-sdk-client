@@ -2117,6 +2117,11 @@ amp.stats.event = function(dom,type,event,value){
                     if (e.originalEvent.touches.length!=this.options.gesture.fingers)
                         return true;
                 }
+
+                if (e.originalEvent && e.originalEvent.target && e.originalEvent.target.type === 'range') {
+                    return true;
+                }
+
                 this.changed = false;
                 this.moved = false;
                 this.startTouchEvent = e;
@@ -2278,7 +2283,9 @@ amp.stats.event = function(dom,type,event,value){
                 var method = this._asyncMethods.splice(0,1)[0];
                 if(method.func && method.args) {
                     setTimeout(function(){
-                        method.func.apply(self,method.args);
+                        if (method && method.func) {
+                            method.func.apply(self,method.args);
+                        }
                     },count);
                     count++
                 }
@@ -5000,8 +5007,13 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             if(this.scale == 1) {
-                $(document).off(this.options.events.move, this._setPos);
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                if (this.options.events.move) {
+                    $(document).off(this.options.events.move, this._setPos);
+                }
+
+                if (this.options.events.zoomOut) {
+                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                }
             }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -5011,8 +5023,14 @@ amp.stats.event = function(dom,type,event,value){
             if (!this.zoomArea) {
                 return;
             }
-            $(document).off(this.options.events.move, this._setPos);
-            $(document).off(this.options.events.zoomOut,this.zoomOut);
+            if (this.options.events.move) {
+                $(document).off(this.options.events.move, this._setPos);
+            }
+
+            if (this.options.events.zoomOut) {
+                $(document).off(this.options.events.zoomOut,this.zoomOut);
+            }
+
             this.scale = 1;
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -5281,13 +5299,12 @@ amp.stats.event = function(dom,type,event,value){
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
-            this.newSize = {'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale};
+            this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
             this.$zoomed.attr('src',this.$source.attr('src'));
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
-                this.$zoomed.height(this.$source.height());
                 this.$zoomed.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
@@ -5299,7 +5316,7 @@ amp.stats.event = function(dom,type,event,value){
             this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
-        this.invalidateImageURL();
+        this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
     };
 
     zoomArea.prototype.show = function(){
@@ -5314,9 +5331,9 @@ amp.stats.event = function(dom,type,event,value){
         $(window).off('resize', this.invalidatePosition);
     };
 
-    zoomArea.prototype.invalidateImageURL = function() {
-        var src = this.initialSrc.split('?')[0]+'?w='+this.newSize.x+'&h='+this.newSize.y+'&'+this.transforms;
-        if(this.newSize.x == 0 || this.newSize.y ==0) {
+    zoomArea.prototype.invalidateImageURL = function(size) {
+        var src = this.initialSrc.split('?')[0]+'?w='+size.x+'&h='+size.y+'&'+this.transforms;
+        if(size.x == 0 || size.y ==0) {
             src='';
         }
         this.$preloader.attr('src',src);
@@ -5351,6 +5368,7 @@ amp.stats.event = function(dom,type,event,value){
             error:5,
             idle:6
         },
+        _currentState: 0,
         _ready: false,
         _loopCount: 0,
         _savedHTML:'',
@@ -5470,6 +5488,7 @@ amp.stats.event = function(dom,type,event,value){
                         self._player.play();
                         self._track("looped", { count: ++self._loopCount });
                     }else{
+                        self.state(self._states.stopped);
                         self._track("ended", null);
                     }
                 });
