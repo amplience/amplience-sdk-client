@@ -3873,6 +3873,10 @@ amp.stats.event = function(dom,type,event,value){
             }
         },
         _onImageLoad: function(){
+            if (this._imageLoaded) {
+                return;
+            }
+
             this._track( 'loaded', true );
             this._imageLoaded = true;
             this._imageLoading = false;
