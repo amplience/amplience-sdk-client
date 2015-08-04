@@ -3294,7 +3294,14 @@
     };
 
     zoomArea.prototype.invalidateImageURL = function(size) {
-        var src = this.initialSrc.split('?')[0]+'?w='+size.x+'&h='+size.y+'&'+this.transforms;
+        var templateQueryParam = '';
+
+        if (this.transforms && this.transforms.length) {
+            templateQueryParam = this.transforms + '&';
+        }
+
+        var src = this.initialSrc.split('?')[0] + '?' + templateQueryParam + 'w=' + size.x + '&h=' +size.y;
+
         if(size.x == 0 || size.y ==0) {
             src='';
         }
