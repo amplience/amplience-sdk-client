@@ -3862,7 +3862,7 @@ amp.stats.event = function(dom,type,event,value){
             }
 
             this.target = this.imgs[0];
-            this._setCursor(this.options.cursor.inactive, this.parent);
+            this._setZoomCursor(this.parent);
             this.parent.addClass(this.options.states.inactive);
 
             if(this.options.preload.image == 'created' || this.element[0].src)
@@ -3873,6 +3873,10 @@ amp.stats.event = function(dom,type,event,value){
             }
         },
         _onImageLoad: function(){
+            if (this._imageLoaded) {
+                return;
+            }
+
             this._track( 'loaded', true );
             this._imageLoaded = true;
             this._imageLoading = false;
@@ -4212,7 +4216,7 @@ amp.stats.event = function(dom,type,event,value){
                  };
                  this.parent.on(this.moveEvent, $.proxy(self._parentMove,self));
                  this._mouseMove(self._getEvent(e), pw, ph, tw, th, po, bw, bh, mw, mh, lens);
-                 this._setCursor(self.options.cursor.active, self.lens ? self.lens : self.parent);
+                 this._setZoomCursor(self.lens ? self.lens : self.parent);
 
                  if(this.options.fade) {
                     this.animating = true;
@@ -4716,6 +4720,28 @@ amp.stats.event = function(dom,type,event,value){
             }
             if(!!window.chrome){     // chrome + opera
                 el.css('cursor', '-webkit-' + cursorStyle);
+            }
+        },
+        _setZoomCursor: function(el) {
+            var zoomLevels = this.options.zoom;
+
+            if (zoomLevels.length) {
+                // we have multiple zoom levels, set the zoom cursor according to where we are in the cycle
+                var zoomIndex = zoomLevels.indexOf(this.zoomBy);
+
+                if (zoomIndex === zoomLevels.length - 1) {
+                    this._setCursor(this.options.cursor.active, el);
+                } else {
+                    this._setCursor(this.options.cursor.inactive, el);
+                }
+
+            } else {
+                // we have single level zoom, set the zoom cursor according to whether we are in zoom or not
+                if (this.zoomBy > 1) {
+                    this._setCursor(this.options.cursor.active, el);
+                } else {
+                    this._setCursor(this.options.cursor.inactive, el);
+                }
             }
         },
         _getDistance:function(t){
