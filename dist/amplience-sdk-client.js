@@ -5389,7 +5389,8 @@ amp.stats.event = function(dom,type,event,value){
             pauseOnHide: true,
             controls:true,
             nativeControlsForTouch:true,
-            plugins:{}
+            plugins:{},
+            enableSoftStates: true
         },
         _states: {
             stopped:0,
@@ -5460,7 +5461,7 @@ amp.stats.event = function(dom,type,event,value){
                     self.state(self._states.playing);
 
                 this.on("play", function (e) {
-                    if (!self.softPlay) {
+                    if (!self.softPlay || !self.options.enableSoftStates) {
                         self.state(self._states.playing);
                         self._track("play", {event:e,player:this,time: this.currentTime(),duration: self.duration});
                     } else {
@@ -5486,7 +5487,7 @@ amp.stats.event = function(dom,type,event,value){
 
                 this.on("seeking", function (e) {
                     if (!self.softSeek) {
-                        if (self.state() != self._states.paused && e.target.currentTime != 0)
+                        if (self.state() !== self._states.paused && e.target.currentTime !== 0 && self.options.enableSoftStates)
                             self.softPlay = true;
                         self._track("seeked", {event:e,player:this,time: this.currentTime(),duration: self.duration});
                     } else {
