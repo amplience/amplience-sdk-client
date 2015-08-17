@@ -2905,6 +2905,14 @@
             this.parentSize = {"x":this.$parent.width(),"y":this.$parent.height()};
         },
 
+        currentZoomState: function() {
+            return {
+                scale: this.scale,
+                scaleMax:this.options.scaleMax,
+                scaleStep:this.options.scaleStep
+            };
+        },
+
         zoomInFull:function(e) {
             this.setScale(this.options.scaleMax);
             this._track('zoomedInFull',{domEvent:e,scale:this.options.scaleMax,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
