@@ -137,6 +137,9 @@
             }else{
                 this.prev();
             }
+
+            this._track("scroll", { 'domEvent': e, delta: delta });
+
             e.preventDefault();
             return false;
         },

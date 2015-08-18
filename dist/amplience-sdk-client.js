@@ -5781,6 +5781,9 @@ amp.stats.event = function(dom,type,event,value){
             }else{
                 this.prev();
             }
+
+            this._track("scroll", { 'domEvent': e, delta: delta });
+
             e.preventDefault();
             return false;
         },
