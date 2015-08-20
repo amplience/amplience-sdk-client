@@ -4942,7 +4942,7 @@ amp.stats.event = function(dom,type,event,value){
             this.parentSize = {"x":this.$parent.width(),"y":this.$parent.height()};
         },
 
-        currentZoomState: function() {
+        state: function() {
             return {
                 scale: this.scale,
                 scaleMax:this.options.scaleMax,
