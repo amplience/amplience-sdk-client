@@ -10,6 +10,7 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
+
 /**
  * Polyfills for IE
  *
@@ -80,6 +81,7 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
+
 
 
 
@@ -907,6 +909,7 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
+
 (function(){
 /**
  * Creates a url to an asset
@@ -1559,6 +1562,7 @@ var webCacheSize = function (data) {
 
 
 
+
 }());
 (function () {
     /**
@@ -1980,6 +1984,7 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
+
 
 /**
  * Binds a callback to a set of events which can be filtered

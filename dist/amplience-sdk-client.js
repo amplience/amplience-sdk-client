@@ -10,6 +10,7 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
+
 /**
  * Polyfills for IE
  *
@@ -80,6 +81,7 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
+
 
 
 
@@ -907,6 +909,7 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
+
 (function(){
 /**
  * Creates a url to an asset
@@ -1559,6 +1562,7 @@ var webCacheSize = function (data) {
 
 
 
+
 }());
 (function () {
     /**
@@ -1980,6 +1984,7 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
+
 
 /**
  * Binds a callback to a set of events which can be filtered
@@ -5838,35 +5843,36 @@ amp.stats.event = function(dom,type,event,value){
             }
 
 
-            var onLoad = function(e){
+            var onLoad = function (e) {
                 self.loadedCount++;
-                var percent = ((self.loadedCount/self.toLoadCount)*100);
-                if(self.pre) {
-                    self.pre.css('width', 100 - percent + '%');
-                    self.pre.css('left', percent + '%');
-                }
-                if(self.progressIndicator && self.progressIndicator.visible){
-                    self.progressIndicator.progress.css('width', percent + '%');
-                }
-
-                 if(self.loadedCount >= self.toLoadCount) {
+                if (self.loadedCount >= self.toLoadCount && !self._loaded) {
+                    self._unsetLoadEvents(self.imgs);
                     self._loaded = true;
-                    if(self.pre) {
+                    if (self.pre) {
                         self.pre.remove();
                     }
                     if (self.options.play.onLoad) {
                         self.playRepeat(self.options.play.repeat);
                     }
                     self._loading = false;
-                    if(self.progressIndicator) {
+                    if (self.progressIndicator) {
                         self.progressIndicator.visible = false;
                         self.progressIndicator.remove();
                     }
 
                     self._track('preloaded');
+                } else {
+                    var percent = ((self.loadedCount / self.toLoadCount) * 100);
+                    if (self.pre) {
+                        self.pre.css('width', 100 - percent + '%');
+                        self.pre.css('left', percent + '%');
+                    }
+                    if (self.progressIndicator && self.progressIndicator.visible) {
+                        self.progressIndicator.progress.css('width', percent + '%');
+                    }
                 }
 
-            }
+            };
 
             if(index){
                 this.first = true;
@@ -5876,6 +5882,21 @@ amp.stats.event = function(dom,type,event,value){
                 this._callImageMethod(this.imgs, onLoad)
             }
 
+        },
+        _unsetLoadEvents: function(imgs) {
+            if(!imgs){
+                return;
+            }
+            for(var m = 0, len = imgs.length; m < len; m++) {
+                var child = $(imgs[m]),
+                    components = child.data();
+
+                if(components['amp-ampZoom']){
+                    child.ampZoom({'loaded':null});
+                }else{
+                    child.ampImage({'loaded':null});
+                }
+            }
         },
         _callImageMethod: function(imgs, onLoad) {
             for(var m = 0, len = imgs.length; m < len; m++) {
@@ -5899,8 +5920,7 @@ amp.stats.event = function(dom,type,event,value){
                 this.play();
                 return;
             }
-            var self = this,
-                totalPlayTime = num * this.options.delay * this._count;
+            var self = this;
 
             for(var i=0; i<num; i++) {
                 for (var x=0; x<this.count;x++) {
