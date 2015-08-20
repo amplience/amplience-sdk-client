@@ -28,7 +28,7 @@
     "karma-phantomjs-launcher": "~0.1"
   },
   "scripts": {
-    "test": "test"
+    "test": "grunt karma:test"
   },
   "repository": {
     "type": "git",

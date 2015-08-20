@@ -162,6 +162,14 @@
             this.parentSize = {"x":this.$parent.width(),"y":this.$parent.height()};
         },
 
+        state: function() {
+            return {
+                scale: this.scale,
+                scaleMax:this.options.scaleMax,
+                scaleStep:this.options.scaleStep
+            };
+        },
+
         zoomInFull:function(e) {
             this.setScale(this.options.scaleMax);
             this._track('zoomedInFull',{domEvent:e,scale:this.options.scaleMax,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -252,8 +260,13 @@
                 return;
             }
             if(this.scale == 1) {
-                $(document).off(this.options.events.move, this._setPos);
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                if (this.options.events.move) {
+                    $(document).off(this.options.events.move, this._setPos);
+                }
+
+                if (this.options.events.zoomOut) {
+                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                }
             }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -263,8 +276,14 @@
             if (!this.zoomArea) {
                 return;
             }
-            $(document).off(this.options.events.move, this._setPos);
-            $(document).off(this.options.events.zoomOut,this.zoomOut);
+            if (this.options.events.move) {
+                $(document).off(this.options.events.move, this._setPos);
+            }
+
+            if (this.options.events.zoomOut) {
+                $(document).off(this.options.events.zoomOut,this.zoomOut);
+            }
+
             this.scale = 1;
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
@@ -533,13 +552,12 @@
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
-            this.newSize = {'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale};
+            this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
             this.$zoomed.attr('src',this.$source.attr('src'));
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
-                this.$zoomed.height(this.$source.height());
                 this.$zoomed.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
@@ -551,7 +569,7 @@
             this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
-        this.invalidateImageURL();
+        this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
     };
 
     zoomArea.prototype.show = function(){
@@ -566,9 +584,16 @@
         $(window).off('resize', this.invalidatePosition);
     };
 
-    zoomArea.prototype.invalidateImageURL = function() {
-        var src = this.initialSrc.split('?')[0]+'?w='+this.newSize.x+'&h='+this.newSize.y+'&'+this.transforms;
-        if(this.newSize.x == 0 || this.newSize.y ==0) {
+    zoomArea.prototype.invalidateImageURL = function(size) {
+        var templateQueryParam = '';
+
+        if (this.transforms && this.transforms.length) {
+            templateQueryParam = this.transforms + '&';
+        }
+
+        var src = this.initialSrc.split('?')[0] + '?' + templateQueryParam + 'w=' + size.x + '&h=' +size.y;
+
+        if(size.x == 0 || size.y ==0) {
             src='';
         }
         this.$preloader.attr('src',src);
