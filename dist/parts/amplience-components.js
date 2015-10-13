@@ -389,11 +389,15 @@
             }
             this._setIndex(_index);
         },
-        _setIndex:function(index) {
-            var elmWas = this._children.eq(this._index-1);
-            var elm = this._children.eq(index-1);
-            this.callChildMethod(elm,'visible',true);
-            this.callChildMethod(elmWas,'visible',false);
+        _setIndex:function(index, noVisibilityToggle) {
+            if (!noVisibilityToggle) {
+                var elmWas = this._children.eq(this._index-1);
+                var elm = this._children.eq(index-1);
+
+                this.callChildMethod(elm,'visible',true);
+                this.callChildMethod(elmWas,'visible',false);
+            }
+
             this._index = index;
             this._track("change",{'index':index,'canPrev':this.canPrev(),'canNext':this.canNext()});
         },
@@ -4032,27 +4036,54 @@
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
+
                 var speed = distance/time,
                     travelSpeed = speed,
-                    fiction = this.options.friction,
+                    friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0,
-                    timeInterval = 10; // time interval in ms
+                    travelTime = 0;
+
                 // Meeting the min distance requirement
-                if(Math.abs(totalDistance)<this.options.minDistance)
+                if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
-                // every 10ms the speed reduces by the friction percentage
-                while(Math.abs(travelSpeed)>0.1) {
-                    travelSpeed*=fiction;
-                    travelDistance += travelSpeed*timeInterval;
-                    travelTime+=timeInterval;
-                    setTimeout((function(td){
-                        return function() {
-                            self._moveSpin(td+totalDistance,e,sindex);
-                        }
-                    })(travelDistance),travelTime)
-                }
+
+                var lastAnimationTime = null;
+
+                var animateMomentum = function(timeStamp) {
+                    var timeElapsed;
+
+                    if (lastAnimationTime) {
+                        timeElapsed = timeStamp - lastAnimationTime;
+                    } else {
+                        // this is the first iteration, assume 15ms
+                        timeElapsed = 15;
+                    }
+
+                    lastAnimationTime = timeStamp;
+
+                    // apply a unit of friction for every elapsed 10ms
+                    var frictionIteration = timeElapsed / 10;
+                    while (frictionIteration > 0) {
+                        // allow for a partial application of friction, ie. if we had to apply 3.5 friction iterations
+                        // for the last iteration (0.5), we only want to apply 50% of the friction speed delta
+                        travelSpeed -= (travelSpeed - travelSpeed * friction) * Math.min(frictionIteration, 1);
+                        frictionIteration -= 1;
+                    }
+
+                    travelDistance += travelSpeed * timeElapsed;
+                    travelTime += timeElapsed;
+
+                    self._moveSpin(travelDistance + totalDistance, e, sindex);
+
+                    if (Math.abs(travelSpeed) > 0.1) {
+                        window.requestAnimationFrame(animateMomentum);
+                    }
+                };
+
+                // trigger the initial momentum animation
+                window.requestAnimationFrame(animateMomentum);
+
                 return;
             }
         },
@@ -4140,15 +4171,19 @@
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-            if(this._index == _index){
+
+            if (this._index == _index) {
                 return;
             }
-            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('display','block');
-            currItem.removeClass(this.options.states.selected);
-            currItem.css('display','none');
-            this._setIndex(_index);
 
+            // toggle item visibility
+            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
+            nextItem.css('display', 'block');
+            currItem.removeClass(this.options.states.selected);
+            currItem.css('display', 'none');
+
+            // set the index, but ignore visibility toggling as this is already done
+            this._setIndex(_index, true);
         },
         _track: function(event,value) {
             this._trigger( event, null, value );
