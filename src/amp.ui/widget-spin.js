@@ -68,8 +68,8 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
+            children.css({'z-index':-1});
+            children.eq(this._index-1).css('z-index', 1000);
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -567,9 +567,9 @@
 
             // toggle item visibility
             nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
-            nextItem.css('display', 'block');
+            nextItem.css('z-index', 1000);
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display', 'none');
+            currItem.css('z-index', -1);
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
