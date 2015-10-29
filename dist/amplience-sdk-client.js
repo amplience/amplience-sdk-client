@@ -5745,7 +5745,7 @@ amp.stats.event = function(dom,type,event,value){
             this.loadedCount = 0;
             children.addClass('amp-frame');
             children.css({'z-index':-1});
-            children.eq(this._index-1).css('z-index', 1000);
+            children.eq(this._index-1).css('z-index', 1);
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -6101,7 +6101,6 @@ amp.stats.event = function(dom,type,event,value){
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
-
                 var speed = distance/time,
                     travelSpeed = speed,
                     friction = this.options.friction,
@@ -6236,16 +6235,14 @@ amp.stats.event = function(dom,type,event,value){
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-
-            if (this._index == _index) {
+            if(this._index == _index){
                 return;
             }
-
-            // toggle item visibility
-            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
-            nextItem.css('z-index', 1000);
+            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            nextItem.css('z-index', 1);
             currItem.removeClass(this.options.states.selected);
             currItem.css('z-index', -1);
+            this._setIndex(_index);
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
