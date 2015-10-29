@@ -5747,7 +5747,7 @@ amp.stats.event = function(dom,type,event,value){
             this.loadedCount = 0;
             children.addClass('amp-frame');
             children.css({'z-index':-1});
-            children.eq(this._index-1).css('z-index', 1000);
+            children.eq(this._index-1).css('z-index', 1);
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -6243,7 +6243,7 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('z-index', 1000);
+            nextItem.css('z-index', 1);
             currItem.removeClass(this.options.states.selected);
             currItem.css('z-index', -1);
 
