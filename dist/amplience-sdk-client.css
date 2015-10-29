@@ -44,6 +44,7 @@
 }
 .amp-zoom,
 .amp-zoomed,
+.amp-zoomed-clone,
 .amp-zoomed-container {
   user-drag: none;
   -webkit-user-drag: none;
@@ -194,7 +195,8 @@
   width: 0;
   background: #a9a9a9;
 }
-.amp-zoomed {
+.amp-zoomed,
+.amp-zoomed-clone {
   display: block;
   position: absolute!important;
   max-width: none!important;
@@ -206,6 +208,12 @@
   -webkit-user-select: none;
   -o-user-select: none;
   max-height: none!important;
+}
+.amp-zoomed-clone {
+  z-index: 1 !important;
+}
+.amp-zoomed-clone.amp-hidden {
+  display: none;
 }
 
 /*!
