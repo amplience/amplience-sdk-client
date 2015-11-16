@@ -5746,8 +5746,13 @@ amp.stats.event = function(dom,type,event,value){
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'z-index':-1});
-            children.eq(this._index-1).css('z-index', 1);
+            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+              children.css({'z-index':-1});
+              children.eq(this._index-1).css('z-index', 1);
+            } else {
+              children.css({'opacity': 0});
+              children.eq(this._index-1).css('opacity', 1);
+            }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -6109,8 +6114,8 @@ amp.stats.event = function(dom,type,event,value){
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0;
-
+                    travelTime = 0,
+                    timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
@@ -6238,14 +6243,19 @@ amp.stats.event = function(dom,type,event,value){
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-
-            if (this._index == _index) {
+            if(this._index == _index){
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('z-index', 1);
+            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+              nextItem.css('z-index', 1);
+              currItem.css('z-index', -1);
+            }else{
+              nextItem.css('opacity', 1);
+              currItem.css('opacity', 0);
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('z-index', -1);
+            this._setIndex(_index);
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
