@@ -1548,9 +1548,36 @@
 
         },
 
+        dimensionsParams: function(imgSrc){
+            //Dynamically assign width and/or heigt attributes in src attribute of an image
+            var dimensionsObj = this.element.data('amp-dimensions');
+            var src = imgSrc;
+            if (!dimensionsObj){
+                return '';
+            }
+
+            var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
+            var paramsString = '';
+
+            $.each(dimensionsObj[0], function(key, obj){
+                if(obj.domName === 'window'){
+                    obj.domName = window;
+                }
+                paramsString += paramPrefix + key + '=' +  parseFloat($(obj.domName)[obj.domProp]()), 10;
+                paramPrefix = '&';
+
+            });
+
+            if(src.indexOf(paramsString) > -1){
+                return '';
+            }
+
+           return paramsString;
+        },
+
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-
+            src += this.dimensionsParams(src);
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
