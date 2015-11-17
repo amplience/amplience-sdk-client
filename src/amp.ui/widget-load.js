@@ -51,7 +51,7 @@
                 if(obj.domName === 'window'){
                     obj.domName = window;
                 }
-                paramsString += paramPrefix + key + '=' +  parseFloat($(obj.domName)[obj.domProp]()), 10;
+                paramsString += paramPrefix + key + '=' +  parseFloat($(obj.domName)[obj.domProp](), 10);
                 paramPrefix = '&';
 
             });
