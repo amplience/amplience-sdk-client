@@ -44,6 +44,7 @@
 }
 .amp-zoom,
 .amp-zoomed,
+.amp-zoomed-clone,
 .amp-zoomed-container {
   user-drag: none;
   -webkit-user-drag: none;
@@ -83,6 +84,30 @@
   padding: 0;
   margin: 0;
   position: relative;
+}
+.amp-spin {
+  width: 100%;
+  height: 100%;
+}
+.amp-spin .amp-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.amp-spin {
+  width: 100%;
+  height: 100%;
+}
+.amp-spin .amp-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 .amp-loading {
   top: 0;
@@ -170,7 +195,8 @@
   width: 0;
   background: #a9a9a9;
 }
-.amp-zoomed {
+.amp-zoomed,
+.amp-zoomed-clone {
   display: block;
   position: absolute!important;
   max-width: none!important;
@@ -182,6 +208,12 @@
   -webkit-user-select: none;
   -o-user-select: none;
   max-height: none!important;
+}
+.amp-zoomed-clone {
+  z-index: 1 !important;
+}
+.amp-zoomed-clone.amp-hidden {
+  display: none;
 }
 
 /*!
