@@ -3664,6 +3664,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -3681,12 +3682,12 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+            if (this.isIE){
               children.css({'z-index':-1});
               children.eq(this._index-1).css('z-index', 1);
             } else {
-              children.css({'opacity': 0});
-              children.eq(this._index-1).css('opacity', 1);
+              children.css({'display':'none'});
+              children.eq(this._index-1).css('display','block');
             }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
@@ -4182,12 +4183,12 @@
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+            if (this.isIE){
               nextItem.css('z-index', 1);
               currItem.css('z-index', -1);
             }else{
-              nextItem.css('opacity', 1);
-              currItem.css('opacity', 0);
+              nextItem.css('display', 'block');
+              currItem.css('display', 'none');
             }
             currItem.removeClass(this.options.states.selected);
             this._setIndex(_index);
