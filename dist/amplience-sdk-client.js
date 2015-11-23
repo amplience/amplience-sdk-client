@@ -5819,6 +5819,7 @@ amp.stats.event = function(dom,type,event,value){
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -5836,8 +5837,13 @@ amp.stats.event = function(dom,type,event,value){
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'z-index':-1});
-            children.eq(this._index-1).css('z-index', 1);
+            if (this.isIE){
+              children.css({'z-index':-1});
+              children.eq(this._index-1).css('z-index', 1);
+            } else {
+              children.css({'display':'none'});
+              children.eq(this._index-1).css('display','block');
+            }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -6331,9 +6337,14 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('z-index', 1);
+            if (this.isIE){
+              nextItem.css('z-index', 1);
+              currItem.css('z-index', -1);
+            }else{
+              nextItem.css('display', 'block');
+              currItem.css('display', 'none');
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('z-index', -1);
             this._setIndex(_index);
 
             // set the index, but ignore visibility toggling as this is already done
