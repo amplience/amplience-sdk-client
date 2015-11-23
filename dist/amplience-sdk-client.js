@@ -5819,7 +5819,7 @@ amp.stats.event = function(dom,type,event,value){
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0
+            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
