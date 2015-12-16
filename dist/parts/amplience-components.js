@@ -1548,36 +1548,41 @@
 
         },
 
-        dimensionsParams: function(imgSrc){
+        dimensionsParams: function (imgSrc) {
             //Dynamically assign width and/or heigt attributes in src attribute of an image
-            var dimensionsObj = this.element.data('amp-dimensions');
+            var self = this;
+            var dimensionsObj = self.element.data('amp-dimensions');
             var src = imgSrc;
-            if (!dimensionsObj){
-                return '';
+            if (!dimensionsObj) {
+                return src;
             }
 
             var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
             var paramsString = '';
 
-            $.each(dimensionsObj[0], function(key, obj){
-                if(obj.domName === 'window'){
-                    obj.domName = window;
+            $.each(dimensionsObj[0], function (key, obj) {
+                var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
+                var dublicate = src.match(regExp);
+
+                if (dublicate && dublicate.length > 0) {
+                    $.each(dublicate, function (i, v) {
+                        src = src.replace(v, '');
+                    });
                 }
-                paramsString += paramPrefix + key + '=' +  parseFloat($(obj.domName)[obj.domProp](), 10);
+
+                var $parent = obj.domName === 'window' ? $(window) : self.element.closest(obj.domName);
+                paramsString += paramPrefix + key + '=' + parseFloat($parent[obj.domProp](), 10);
                 paramPrefix = '&';
 
             });
 
-            if(src.indexOf(paramsString) > -1){
-                return '';
-            }
-
-           return paramsString;
+            src += paramsString;
+            return src;
         },
 
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-            src += this.dimensionsParams(src);
+            src = this.dimensionsParams(src);
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
