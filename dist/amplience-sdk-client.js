@@ -167,7 +167,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/all",
         ["./utils","exports"],
         function(__dependency1__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /* global toString */
 
             var isArray = __dependency1__.isArray;
@@ -264,7 +264,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/asap",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             var browserGlobal = (typeof window !== 'undefined') ? window : {};
             var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
             var local = (typeof global !== 'undefined') ? global : (this === undefined? window:this);
@@ -329,7 +329,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/config",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             var config = {
                 instrument: false
             };
@@ -348,7 +348,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/polyfill",
         ["./promise","./utils","exports"],
         function(__dependency1__, __dependency2__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /*global self*/
             var RSVPPromise = __dependency1__.Promise;
             var isFunction = __dependency2__.isFunction;
@@ -390,7 +390,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/promise",
         ["./config","./utils","./all","./race","./resolve","./reject","./asap","exports"],
         function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __dependency6__, __dependency7__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             var config = __dependency1__.config;
             var configure = __dependency1__.configure;
             var objectOrFunction = __dependency2__.objectOrFunction;
@@ -605,7 +605,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/race",
         ["./utils","exports"],
         function(__dependency1__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /* global toString */
             var isArray = __dependency1__.isArray;
 
@@ -698,7 +698,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/reject",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             /**
              `RSVP.reject` returns a promise that will become rejected with the passed
              `reason`. `RSVP.reject` is essentially shorthand for the following:
@@ -749,7 +749,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/resolve",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             function resolve(value) {
                 /*jshint validthis:true */
                 if (value && typeof value === 'object' && value.constructor === this) {
@@ -768,7 +768,7 @@ JSON.parse = JSON.parse || function (data) {
     define("promise/utils",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             function objectOrFunction(x) {
                 return isFunction(x) || (typeof x === "object" && x !== null);
             }
@@ -831,7 +831,7 @@ amp.conf = {
  */
 var indexOf = amp.indexOf = function(arr, elt /*, from*/)
 {
-    "use strict";
+    /* "use strict"; */
     if (arr == null) {
         throw new TypeError();
     }
