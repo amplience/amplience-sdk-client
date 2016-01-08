@@ -5,7 +5,7 @@
  */
 var indexOf = amp.indexOf = function(arr, elt /*, from*/)
 {
-    "use strict";
+    /* "use strict"; */
     if (arr == null) {
         throw new TypeError();
     }
@@ -110,7 +110,7 @@ function isArray(o){
 /* test-code */
 if ('function' !== typeof Array.prototype.reduce) {
     Array.prototype.reduce = function(callback, opt_initialValue){
-        'use strict';
+        /* "use strict"; */
         if (null === this || 'undefined' === typeof this) {
             // At the moment all modern browsers, that support strict mode, have
             // native implementation of Array.prototype.reduce. For instance, IE8

@@ -162,7 +162,7 @@ $.polyfill._utils = {
     define("promise/all",
         ["./utils","exports"],
         function(__dependency1__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /* global toString */
 
             var isArray = __dependency1__.isArray;
@@ -259,7 +259,7 @@ $.polyfill._utils = {
     define("promise/asap",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             var browserGlobal = (typeof window !== 'undefined') ? window : {};
             var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
             var local = (typeof global !== 'undefined') ? global : (this === undefined? window:this);
@@ -324,7 +324,7 @@ $.polyfill._utils = {
     define("promise/config",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             var config = {
                 instrument: false
             };
@@ -343,7 +343,7 @@ $.polyfill._utils = {
     define("promise/polyfill",
         ["./promise","./utils","exports"],
         function(__dependency1__, __dependency2__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /*global self*/
             var RSVPPromise = __dependency1__.Promise;
             var isFunction = __dependency2__.isFunction;
@@ -385,7 +385,7 @@ $.polyfill._utils = {
     define("promise/promise",
         ["./config","./utils","./all","./race","./resolve","./reject","./asap","exports"],
         function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __dependency6__, __dependency7__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             var config = __dependency1__.config;
             var configure = __dependency1__.configure;
             var objectOrFunction = __dependency2__.objectOrFunction;
@@ -600,7 +600,7 @@ $.polyfill._utils = {
     define("promise/race",
         ["./utils","exports"],
         function(__dependency1__, __exports__) {
-            "use strict";
+            /* "use strict"; */
             /* global toString */
             var isArray = __dependency1__.isArray;
 
@@ -693,7 +693,7 @@ $.polyfill._utils = {
     define("promise/reject",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             /**
              `RSVP.reject` returns a promise that will become rejected with the passed
              `reason`. `RSVP.reject` is essentially shorthand for the following:
@@ -744,7 +744,7 @@ $.polyfill._utils = {
     define("promise/resolve",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             function resolve(value) {
                 /*jshint validthis:true */
                 if (value && typeof value === 'object' && value.constructor === this) {
@@ -763,7 +763,7 @@ $.polyfill._utils = {
     define("promise/utils",
         ["exports"],
         function(__exports__) {
-            "use strict";
+            /* "use strict"; */
             function objectOrFunction(x) {
                 return isFunction(x) || (typeof x === "object" && x !== null);
             }
