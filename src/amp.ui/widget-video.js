@@ -243,6 +243,7 @@
         },
         _destroy: function() {
             this._player.dispose();
+            this._player = null;
             this.element[0].outerHTML = this._savedHTML;
         },
         _sanitisePlugins: function(plugins){
