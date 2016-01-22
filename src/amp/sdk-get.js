@@ -306,8 +306,8 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform){
-
+var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
@@ -331,7 +331,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, 60000);
+    }, timeout);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
