@@ -1078,9 +1078,10 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
+ * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
+amp.get = function (assets, success, error, videoSort, timeout) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
         return function (name,data) {
@@ -1107,7 +1108,7 @@ amp.get = function (assets, success, error, videoSort) {
                     data = removeData(vData,data);
                     allLoaded();
                 });
-            } else { 
+            } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
                     if(videoSort) {
@@ -1150,14 +1151,14 @@ amp.get = function (assets, success, error, videoSort) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
         }
     }
 };
@@ -1241,7 +1242,7 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform){
+var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
 
     if(!transform){
         transform = '';
@@ -1266,7 +1267,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, 10000);
+    }, timeout);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
@@ -2507,6 +2508,7 @@ amp.stats.event = function(dom,type,event,value){
             start:1,
             preferForward: false,
             no3D: false,
+            thumbWidthExceed:0,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -2555,7 +2557,7 @@ amp.stats.event = function(dom,type,event,value){
             this._children.addClass('amp-slide');
             this._calcSize();
             this._chooseLayoutManager();
-   
+
             this._children.eq(this._index-1).addClass(this.options.states.selected);
 
             if(this.options.onActivate.goTo || this.options.onActivate.select ) {
@@ -2811,8 +2813,8 @@ amp.stats.event = function(dom,type,event,value){
         },
         _preloadNext:function(){
             if(this.options.preloadNext) {
-
-                var index = this._loopIndex(true,this._index,1);
+                var num = this._visible + (this._index - 1);
+                var index = this._loopIndex(true,num,1);
                 var nextNextItem = this._children.eq(index-1);
                 this.callChildMethod(nextNextItem,'preload',true);
             }
@@ -3218,6 +3220,7 @@ amp.stats.event = function(dom,type,event,value){
                     this.focusNoLoop(_index,false);
                 } else {
                     this.arrange(_index);
+                    this.focusLoop(_index, false);
                 }
             };
 
@@ -3249,10 +3252,10 @@ amp.stats.event = function(dom,type,event,value){
                     var elmSize = this.metrics[i].size;
                     var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
 
-                    if (pos >= target && (pos + elmSize - bounds - target) <= widget._elmSize()) {
+                    if (pos >= target && (pos + elmSize - widget.options.thumbWidthExceed - bounds - target) <= widget._elmSize()) {
                         widget._setState(elm, 'visible');
                         visible++;
-                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) <= widget._elmSize()) || (pos >= target && (pos - target) < widget._elmSize())) {
+                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) < widget._elmSize()) || (pos > target && (pos - target) < widget._elmSize())) {
                         widget._setState(elm, 'partial');
                     } else {
                         widget._setState(elm, 'invisible');
@@ -3267,6 +3270,9 @@ amp.stats.event = function(dom,type,event,value){
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
+
+                this.setVisibleStates(_index,target);
+
                 widget._moveElements(target,function(){
                     widget._container[0].style[widget._canCSS3.transform] = '';
                     widget.options.dir === 'horz' ? widget._container[0].style.left = '' : widget._container[0].style.top = '';
