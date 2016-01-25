@@ -2,13 +2,14 @@
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail) {
+    amp.content = function (assets, win, fail, timeout) {
+        var timeout = timeout || 60000;
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets,function(wins,fails){
+        payloader(assets,function(wins,fails,timeout){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -40,7 +41,7 @@
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets,finished) {
+    var payloader = function(assets,finished,timeout) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -65,7 +66,7 @@
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
         }
     };
 
