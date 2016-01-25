@@ -145,8 +145,8 @@ function objLength(obj) {
  * @param {Function} error Callback function called on unsuccessful load
  * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
+amp.get = function (assets, success, error, videoSort) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
 
     var win = function(url){
         return function (name,data) {
@@ -308,7 +308,7 @@ amp.clearJsonCache = function(){
 }
 
 var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
-
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
