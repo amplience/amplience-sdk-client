@@ -10,7 +10,6 @@ var amp = amp || {};
     amp.di = {};
     amp.stats = {};
 
-
 /**
  * Polyfills for IE
  *
@@ -107,7 +106,6 @@ JSON.parse = JSON.parse || function (data) {
         return ( new Function( "return " + data ) )();
     }
 };
-
 
 
 
@@ -935,7 +933,6 @@ function isArray(o){
     return Object.prototype.toString.call( o ) === '[object Array]';
 }
 
-
 (function(){
 /**
  * Creates a url to an asset
@@ -1244,8 +1241,8 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform){
-
+var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
@@ -1269,7 +1266,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, 10000);
+    }, timeout);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
@@ -1584,7 +1581,6 @@ var webCacheSize = function (data) {
         return 'h='+amp.conf.default_size;
     }
 };
-
 
 
 
@@ -2010,7 +2006,6 @@ var webCacheSize = function (data) {
 
 var aEvents = [];
 aEvents.all = [];
-
 
 /**
  * Binds a callback to a set of events which can be filtered
