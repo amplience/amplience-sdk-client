@@ -143,9 +143,10 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
+ * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
+amp.get = function (assets, success, error, videoSort, timeout) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
         return function (name,data) {
@@ -215,14 +216,14 @@ amp.get = function (assets, success, error, videoSort) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
         }
     }
 };
