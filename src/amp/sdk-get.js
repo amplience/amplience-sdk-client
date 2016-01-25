@@ -308,7 +308,7 @@ amp.clearJsonCache = function(){
 }
 
 var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
-
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {

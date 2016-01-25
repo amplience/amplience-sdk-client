@@ -1243,7 +1243,7 @@ amp.clearJsonCache = function(){
 }
 
 var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
-
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
@@ -1283,13 +1283,14 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail) {
+    amp.content = function (assets, win, fail, timeout) {
+        var timeout = timeout || 60000;
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets,function(wins,fails){
+        payloader(assets, timeout, function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -1321,7 +1322,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets,finished) {
+    var payloader = function(assets, timeout, finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -1346,7 +1347,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
         }
     };
 
