@@ -9,7 +9,7 @@
             assets = [assets];
         }
 
-        payloader(assets,function(wins,fails,timeout){
+        payloader(assets, timeout, function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -41,7 +41,7 @@
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets,finished,timeout) {
+    var payloader = function(assets, timeout, finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
