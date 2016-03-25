@@ -145,7 +145,7 @@ function objLength(obj) {
  * @param {Function} error Callback function called on unsuccessful load
  * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout) {
+amp.get = function (assets, success, error, videoSort, timeout, transformData) {
     var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
@@ -197,10 +197,18 @@ amp.get = function (assets, success, error, videoSort, timeout) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success)
+        if(objLength(dataWin)>0 && success) {
+            if(transformData && typeof transformData === 'function'){
+                dataWin = transformData(dataWin);
+            }
             success(dataWin);
-        if(objLength(dataFail)>0 && error)
+        }
+        if(objLength(dataFail)>0 && error) {
+            if(transformData && typeof transformData === 'function'){
+                dataFail = transformData(dataFail);
+            }
             error(dataFail);
+        }
     };
 
     var isValid = function(asset){
