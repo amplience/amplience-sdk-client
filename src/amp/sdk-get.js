@@ -172,7 +172,10 @@ amp.get = function (assets, success, error, videoSort, timeout, transformData) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                });
+                },
+                    false,
+                    timeout,
+                    transformData || false);
             } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
