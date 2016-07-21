@@ -68,8 +68,13 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
+            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+              children.css({'z-index':-1});
+              children.eq(this._index-1).css('z-index', 1);
+            } else {
+              children.css({'opacity': 0});
+              children.eq(this._index-1).css('opacity', 1);
+            }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -564,12 +569,16 @@
             if (this._index == _index) {
                 return;
             }
-
-            // toggle item visibility
-            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
-            nextItem.css('display', 'block');
+            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            if (window.navigator.userAgent.indexOf("MSIE") >= 0){
+              nextItem.css('z-index', 1);
+              currItem.css('z-index', -1);
+            }else{
+              nextItem.css('opacity', 1);
+              currItem.css('opacity', 0);
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display', 'none');
+            this._setIndex(_index);
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
