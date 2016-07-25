@@ -41,6 +41,7 @@
             this._visible = 0;
             this._asyncMethods = [];
             this._canNext = true;
+            this._movedCounter = 0;
             var self = this;
 
             this.options.delay = Math.max(this.options.delay,this.options.animDuration+1);
@@ -71,8 +72,11 @@
                         },1)
 
                     };
-                    var move = function() {
+                    var move = function(evt) {
+                        self._movedCounter +=1;
+                        if(self._movedCounter >= 7){
                         self.moved = true;
+                        }
                     };
                     var activate = (function(_i){
                         var me = self;
@@ -513,6 +517,9 @@
                 if(widget.canTouch && widget.options.gesture.enabled) {
                     widget._children.on('touchstart', $.proxy(this.start,this));
                 }
+                else{
+                    widget._children.on('mousedown', $.proxy(this.start,this));
+                }
             };
 
             m.start = function(e){
@@ -539,6 +546,7 @@
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
+                $(window).on('mouseup',$.proxy(this.stop,this));
                 return true;
             };
 
@@ -577,7 +585,6 @@
 
                 if(widget.options.dir == this.moveDir){
                     return false;
-                    e.preventDefault();
                 }
             };
 
@@ -620,9 +627,11 @@
             };
 
             m.stop = function(e){
+                widget._movedCounter = 0;
                 $(window).off('touchmove',$.proxy(this.move,this));
                 $(window).off('touchcancel',$.proxy(this.stop,this));
                 $(window).off('touchend',$.proxy(this.stop,this));
+                $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
                     var nearest = this.findNearest();
