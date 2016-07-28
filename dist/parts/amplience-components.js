@@ -475,6 +475,7 @@
             this._visible = 0;
             this._asyncMethods = [];
             this._canNext = true;
+            this._movedCounter = 0;
             var self = this;
 
             this.options.delay = Math.max(this.options.delay,this.options.animDuration+1);
@@ -505,8 +506,11 @@
                         },1)
 
                     };
-                    var move = function() {
+                    var move = function(evt) {
+                        self._movedCounter +=1;
+                        if(self._movedCounter >= 7){
                         self.moved = true;
+                        }
                     };
                     var activate = (function(_i){
                         var me = self;
@@ -947,6 +951,9 @@
                 if(widget.canTouch && widget.options.gesture.enabled) {
                     widget._children.on('touchstart', $.proxy(this.start,this));
                 }
+                else{
+                    widget._children.on('mousedown', $.proxy(this.start,this));
+                }
             };
 
             m.start = function(e){
@@ -973,6 +980,7 @@
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
+                $(window).on('mouseup',$.proxy(this.stop,this));
                 return true;
             };
 
@@ -1011,7 +1019,6 @@
 
                 if(widget.options.dir == this.moveDir){
                     return false;
-                    e.preventDefault();
                 }
             };
 
@@ -1054,9 +1061,11 @@
             };
 
             m.stop = function(e){
+                widget._movedCounter = 0;
                 $(window).off('touchmove',$.proxy(this.move,this));
                 $(window).off('touchcancel',$.proxy(this.stop,this));
                 $(window).off('touchend',$.proxy(this.stop,this));
+                $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
                     var nearest = this.findNearest();
@@ -3767,7 +3776,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
+            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -3785,12 +3794,12 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            if (this.isIE){
-              children.css({'z-index':-1});
-              children.eq(this._index-1).css('z-index', 1);
+            if (this.isWebkit){
+                children.css({'display':'none'});
+                children.eq(this._index-1).css('display','block');
             } else {
-              children.css({'display':'none'});
-              children.eq(this._index-1).css('display','block');
+                children.css({'z-index':-1});
+                children.eq(this._index-1).css('z-index', 1);
             }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
@@ -4049,7 +4058,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -4072,7 +4081,6 @@
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -4080,10 +4088,6 @@
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
@@ -4285,12 +4289,12 @@
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            if (this.isIE){
-              nextItem.css('z-index', 1);
-              currItem.css('z-index', -1);
+            if (this.isWebkit){
+                nextItem.css('display', 'block');
+                currItem.css('display', 'none');
             }else{
-              nextItem.css('display', 'block');
-              currItem.css('display', 'none');
+                nextItem.css('zIndex', 1);
+                currItem.css('zIndex', -1);
             }
             currItem.removeClass(this.options.states.selected);
             this._setIndex(_index);
