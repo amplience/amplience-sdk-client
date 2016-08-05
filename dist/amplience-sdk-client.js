@@ -3639,7 +3639,7 @@ amp.stats.event = function(dom,type,event,value){
         },
 
         dimensionsParams: function (imgSrc) {
-            //Dynamically assign width and/or heigt attributes in src attribute of an image
+            //Dynamically assign width and/or height attributes in src attribute of an image
             var self = this;
             var dimensionsObj = self.element.data('amp-dimensions');
             var src = imgSrc;
@@ -3652,10 +3652,10 @@ amp.stats.event = function(dom,type,event,value){
 
             $.each(dimensionsObj[0], function (key, obj) {
                 var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
-                var dublicate = src.match(regExp);
+                var duplicate = src.match(regExp);
 
-                if (dublicate && dublicate.length > 0) {
-                    $.each(dublicate, function (i, v) {
+                if (duplicate && duplicate.length > 0) {
+                    $.each(duplicate, function (i, v) {
                         src = src.replace(v, '');
                     });
                 }
