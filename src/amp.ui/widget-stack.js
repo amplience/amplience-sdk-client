@@ -389,11 +389,15 @@
             }
             this._setIndex(_index);
         },
-        _setIndex:function(index) {
-            var elmWas = this._children.eq(this._index-1);
-            var elm = this._children.eq(index-1);
-            this.callChildMethod(elm,'visible',true);
-            this.callChildMethod(elmWas,'visible',false);
+        _setIndex:function(index, noVisibilityToggle) {
+            if (!noVisibilityToggle) {
+                var elmWas = this._children.eq(this._index-1);
+                var elm = this._children.eq(index-1);
+
+                this.callChildMethod(elm,'visible',true);
+                this.callChildMethod(elmWas,'visible',false);
+            }
+
             this._index = index;
             this._track("change",{'index':index,'canPrev':this.canPrev(),'canNext':this.canNext()});
         },

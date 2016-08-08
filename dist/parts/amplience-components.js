@@ -389,11 +389,15 @@
             }
             this._setIndex(_index);
         },
-        _setIndex:function(index) {
-            var elmWas = this._children.eq(this._index-1);
-            var elm = this._children.eq(index-1);
-            this.callChildMethod(elm,'visible',true);
-            this.callChildMethod(elmWas,'visible',false);
+        _setIndex:function(index, noVisibilityToggle) {
+            if (!noVisibilityToggle) {
+                var elmWas = this._children.eq(this._index-1);
+                var elm = this._children.eq(index-1);
+
+                this.callChildMethod(elm,'visible',true);
+                this.callChildMethod(elmWas,'visible',false);
+            }
+
             this._index = index;
             this._track("change",{'index':index,'canPrev':this.canPrev(),'canNext':this.canNext()});
         },
@@ -1180,13 +1184,15 @@
                     var pos = this.metrics[i].pos;
                     var elm = widget._children.eq(i);
                     var elmSize = this.metrics[i].size;
-                    if(pos>=target && (pos+elmSize-target)<=widget._elmSize()){
-                        widget._setState(elm,'visible');
+                    var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
+
+                    if (pos >= target && (pos + elmSize - bounds - target) <= widget._elmSize()) {
+                        widget._setState(elm, 'visible');
                         visible++;
-                    } else if ((pos+elmSize>target && (pos+elmSize-target)<=widget._elmSize()) || (pos>=target&&(pos-target)<widget._elmSize())) {
-                        widget._setState(elm,'partial');
+                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) <= widget._elmSize()) || (pos >= target && (pos - target) < widget._elmSize())) {
+                        widget._setState(elm, 'partial');
                     } else {
-                        widget._setState(elm,'invisible');
+                        widget._setState(elm, 'invisible');
                     }
                 }
                 widget._visible = visible;
@@ -1542,9 +1548,41 @@
 
         },
 
+        dimensionsParams: function (imgSrc) {
+            //Dynamically assign width and/or heigt attributes in src attribute of an image
+            var self = this;
+            var dimensionsObj = self.element.data('amp-dimensions');
+            var src = imgSrc;
+            if (!dimensionsObj) {
+                return src;
+            }
+
+            var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
+            var paramsString = '';
+
+            $.each(dimensionsObj[0], function (key, obj) {
+                var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
+                var dublicate = src.match(regExp);
+
+                if (dublicate && dublicate.length > 0) {
+                    $.each(dublicate, function (i, v) {
+                        src = src.replace(v, '');
+                    });
+                }
+
+                var $parent = obj.domName === 'window' ? $(window) : self.element.closest(obj.domName);
+                paramsString += paramPrefix + key + '=' + parseFloat($parent[obj.domProp](), 10);
+                paramPrefix = '&';
+
+            });
+
+            src += paramsString;
+            return src;
+        },
+
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-
+            src = this.dimensionsParams(src);
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
@@ -3658,6 +3696,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -3675,8 +3714,13 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
+            if (this.isIE){
+              children.css({'z-index':-1});
+              children.eq(this._index-1).css('z-index', 1);
+            } else {
+              children.css({'display':'none'});
+              children.eq(this._index-1).css('display','block');
+            }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -4032,27 +4076,54 @@
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
+
                 var speed = distance/time,
                     travelSpeed = speed,
-                    fiction = this.options.friction,
+                    friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
                     travelTime = 0,
                     timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
-                if(Math.abs(totalDistance)<this.options.minDistance)
+                if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
-                // every 10ms the speed reduces by the friction percentage
-                while(Math.abs(travelSpeed)>0.1) {
-                    travelSpeed*=fiction;
-                    travelDistance += travelSpeed*timeInterval;
-                    travelTime+=timeInterval;
-                    setTimeout((function(td){
-                        return function() {
-                            self._moveSpin(td+totalDistance,e,sindex);
-                        }
-                    })(travelDistance),travelTime)
-                }
+
+                var lastAnimationTime = null;
+
+                var animateMomentum = function(timeStamp) {
+                    var timeElapsed;
+
+                    if (lastAnimationTime) {
+                        timeElapsed = timeStamp - lastAnimationTime;
+                    } else {
+                        // this is the first iteration, assume 15ms
+                        timeElapsed = 15;
+                    }
+
+                    lastAnimationTime = timeStamp;
+
+                    // apply a unit of friction for every elapsed 10ms
+                    var frictionIteration = timeElapsed / 10;
+                    while (frictionIteration > 0) {
+                        // allow for a partial application of friction, ie. if we had to apply 3.5 friction iterations
+                        // for the last iteration (0.5), we only want to apply 50% of the friction speed delta
+                        travelSpeed -= (travelSpeed - travelSpeed * friction) * Math.min(frictionIteration, 1);
+                        frictionIteration -= 1;
+                    }
+
+                    travelDistance += travelSpeed * timeElapsed;
+                    travelTime += timeElapsed;
+
+                    self._moveSpin(travelDistance + totalDistance, e, sindex);
+
+                    if (Math.abs(travelSpeed) > 0.1) {
+                        window.requestAnimationFrame(animateMomentum);
+                    }
+                };
+
+                // trigger the initial momentum animation
+                window.requestAnimationFrame(animateMomentum);
+
                 return;
             }
         },
@@ -4144,11 +4215,18 @@
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('display','block');
+            if (this.isIE){
+              nextItem.css('z-index', 1);
+              currItem.css('z-index', -1);
+            }else{
+              nextItem.css('display', 'block');
+              currItem.css('display', 'none');
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display','none');
             this._setIndex(_index);
 
+            // set the index, but ignore visibility toggling as this is already done
+            this._setIndex(_index, true);
         },
         _track: function(event,value) {
             this._trigger( event, null, value );

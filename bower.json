@@ -9,10 +9,7 @@
         "jquery-ui": "1.10.0",
         "video.js": "4.4.0"
     },
-    "ignore": ["assets/*",
-        "css/*",
-        "src/*",
-        "test/*",
+    "ignore": [
         ".gitignore",
         "Gruntfile.js",
         "package.json",
