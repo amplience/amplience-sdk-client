@@ -44,9 +44,9 @@
   user-select:none;
 }
 
-.amp-zoom,.amp-zoomed,.amp-zoomed-container {
-  user-drag: none;
-  -webkit-user-drag: none;
+.amp-zoom,.amp-zoomed,.amp-zoomed-clone,.amp-zoomed-container {
+  user-drag:none;
+  -webkit-user-drag:none;
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
@@ -87,7 +87,6 @@
   padding:0;
   margin:0;
   position:relative;
-
 }
 .amp-spin {
   width: 100%;
@@ -198,7 +197,7 @@ z-index:9999;
     background: #a9a9a9;
   }
 }
-.amp-zoomed {
+.amp-zoomed,.amp-zoomed-clone {
   display:block;
   position:absolute!important;
   max-width:none!important;
@@ -212,4 +211,10 @@ z-index:9999;
   -ms-user-select: none;
   user-select:none;
   max-height:none!important;
+}
+.amp-zoomed-clone{
+  z-index:1 !important;
+}
+.amp-zoomed-clone.amp-hidden{
+  display:none;
 }
