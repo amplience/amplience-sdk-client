@@ -431,7 +431,7 @@
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
-
+                
                 var speed = distance/time,
                     travelSpeed = speed,
                     friction = this.options.friction,
