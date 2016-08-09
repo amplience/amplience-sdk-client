@@ -51,6 +51,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -68,8 +69,13 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
+            if (this.isIE){
+              children.css({'z-index':-1});
+              children.eq(this._index-1).css('z-index', 1);
+            } else {
+              children.css({'display':'none'});
+              children.eq(this._index-1).css('display','block');
+            }
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -425,14 +431,14 @@
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
-
+                
                 var speed = distance/time,
                     travelSpeed = speed,
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0;
-
+                    travelTime = 0,
+                    timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
@@ -560,16 +566,19 @@
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-
-            if (this._index == _index) {
+            if(this._index == _index){
                 return;
             }
-
-            // toggle item visibility
-            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
-            nextItem.css('display', 'block');
+            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            if (this.isIE){
+              nextItem.css('z-index', 1);
+              currItem.css('z-index', -1);
+            }else{
+              nextItem.css('display', 'block');
+              currItem.css('display', 'none');
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display', 'none');
+            this._setIndex(_index);
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
