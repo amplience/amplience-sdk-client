@@ -1078,10 +1078,9 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
- * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
+amp.get = function (assets, success, error, videoSort) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
 
     var win = function(url){
         return function (name,data) {
@@ -1151,14 +1150,14 @@ amp.get = function (assets, success, error, videoSort, timeout) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
         }
     }
 };
@@ -1283,14 +1282,13 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail, timeout) {
-        var timeout = timeout || 60000;
+    amp.content = function (assets, win, fail) {
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets, timeout, function(wins,fails){
+        payloader(assets,function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -1322,7 +1320,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets, timeout, finished) {
+    var payloader = function(assets,finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -1347,7 +1345,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
         }
     };
 
@@ -2509,7 +2507,6 @@ amp.stats.event = function(dom,type,event,value){
             start:1,
             preferForward: false,
             no3D: false,
-            thumbWidthExceed:0,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -2558,7 +2555,7 @@ amp.stats.event = function(dom,type,event,value){
             this._children.addClass('amp-slide');
             this._calcSize();
             this._chooseLayoutManager();
-
+   
             this._children.eq(this._index-1).addClass(this.options.states.selected);
 
             if(this.options.onActivate.goTo || this.options.onActivate.select ) {
@@ -2814,8 +2811,8 @@ amp.stats.event = function(dom,type,event,value){
         },
         _preloadNext:function(){
             if(this.options.preloadNext) {
-                var num = this._visible + (this._index - 1);
-                var index = this._loopIndex(true,num,1);
+
+                var index = this._loopIndex(true,this._index,1);
                 var nextNextItem = this._children.eq(index-1);
                 this.callChildMethod(nextNextItem,'preload',true);
             }
@@ -3221,7 +3218,6 @@ amp.stats.event = function(dom,type,event,value){
                     this.focusNoLoop(_index,false);
                 } else {
                     this.arrange(_index);
-                    this.focusLoop(_index, false);
                 }
             };
 
@@ -3251,15 +3247,13 @@ amp.stats.event = function(dom,type,event,value){
                     var pos = this.metrics[i].pos;
                     var elm = widget._children.eq(i);
                     var elmSize = this.metrics[i].size;
-                    var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
-
-                    if (pos >= target && (pos + elmSize - widget.options.thumbWidthExceed - bounds - target) <= widget._elmSize()) {
-                        widget._setState(elm, 'visible');
+                    if(pos>=target && (pos+elmSize-target)<=widget._elmSize()){
+                        widget._setState(elm,'visible');
                         visible++;
-                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) < widget._elmSize()) || (pos > target && (pos - target) < widget._elmSize())) {
-                        widget._setState(elm, 'partial');
+                    } else if ((pos+elmSize>target && (pos+elmSize-target)<=widget._elmSize()) || (pos>=target&&(pos-target)<widget._elmSize())) {
+                        widget._setState(elm,'partial');
                     } else {
-                        widget._setState(elm, 'invisible');
+                        widget._setState(elm,'invisible');
                     }
                 }
                 widget._visible = visible;
@@ -3271,8 +3265,6 @@ amp.stats.event = function(dom,type,event,value){
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
-                this.setVisibleStates(_index,target);
-
                 widget._moveElements(target,function(){
                     widget._container[0].style[widget._canCSS3.transform] = '';
                     widget.options.dir === 'horz' ? widget._container[0].style.left = '' : widget._container[0].style.top = '';
@@ -3617,41 +3609,9 @@ amp.stats.event = function(dom,type,event,value){
 
         },
 
-        dimensionsParams: function (imgSrc) {
-            //Dynamically assign width and/or heigt attributes in src attribute of an image
-            var self = this;
-            var dimensionsObj = self.element.data('amp-dimensions');
-            var src = imgSrc;
-            if (!dimensionsObj) {
-                return src;
-            }
-
-            var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
-            var paramsString = '';
-
-            $.each(dimensionsObj[0], function (key, obj) {
-                var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
-                var dublicate = src.match(regExp);
-
-                if (dublicate && dublicate.length > 0) {
-                    $.each(dublicate, function (i, v) {
-                        src = src.replace(v, '');
-                    });
-                }
-
-                var $parent = obj.domName === 'window' ? $(window) : self.element.closest(obj.domName);
-                paramsString += paramPrefix + key + '=' + parseFloat($parent[obj.domProp](), 10);
-                paramPrefix = '&';
-
-            });
-
-            src += paramsString;
-            return src;
-        },
-
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-            src = this.dimensionsParams(src);
+
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
@@ -5118,10 +5078,6 @@ amp.stats.event = function(dom,type,event,value){
                     $(document).off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
-
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -5139,10 +5095,6 @@ amp.stats.event = function(dom,type,event,value){
             }
 
             this.scale = 1;
-
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -5331,14 +5283,10 @@ amp.stats.event = function(dom,type,event,value){
     };
 
     zoomArea.prototype.createContainer = function() {
-        var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = $('<img class="amp-zoomed-clone amp-hidden">');
-        this.$preloader.on('load', function(){
-            //Assign preloader loaded Boolean to true
-            self._preloaderImgLoaded = true;
-        });
-        this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
+        this.$preloader = $('<img style="display:none">');
+        this.$preloader.on('load', $.proxy(this.setImage,this));
+        this.$zoomed = $('<img class="amp-zoomed" src=""/>');
         this.$container.append(this.$zoomed);
         this.$container.append(this.$preloader);
         this.$area.append(this.$container);
@@ -5358,8 +5306,6 @@ amp.stats.event = function(dom,type,event,value){
     zoomArea.prototype.setPosition = function(x,y) {
         if(this.animating)
             return;
-
-        this.$preloader.addClass('amp-hidden');
         if(this.$zoomed.width()<=this.$area.width()) {
             x = 0.5;
         }
@@ -5409,55 +5355,10 @@ amp.stats.event = function(dom,type,event,value){
 
     };
 
-     zoomArea.prototype.updateImageSrc = function(scale_increased){
-        var self = this;
-        var interval_num = 0;
-        if(this.preloadedImgInterval){
-            clearInterval(this.preloadedImgInterval);
-        }
-
-        if(!scale_increased){
-            self.$preloader.addClass('amp-hidden');
-            return false;
-        }
-
-        this.preloadedImgInterval = setInterval(function(){
-            interval_num +=1;
-
-            if(interval_num >= 30){
-                //Clear interval is number of iterations >= 30,
-                //which equals to 6 seconds (30 * 200)
-                clearInterval(self.preloadedImgInterval);
-                return false;
-            }
-
-            if(!self._preloaderImgLoaded == true){
-                return;
-            }
-
-            var attributes =  self.$zoomed.prop('attributes');
-            $.each(attributes, function() {
-                if(this.name == 'src' || this.name == 'class'){
-                    return;
-                }
-                self.$preloader.attr(this.name, this.value);
-            });
-
-            self.$preloader.removeClass('amp-hidden');
-
-            self.setImage();
-
-            clearInterval(self.preloadedImgInterval);
-        }, 200);
-    };
-
     zoomArea.prototype.setScale = function(scale,cb){
-        var self = this;
-        var scale_increased = scale > this.scale;
         if(scale == this.scale) {
             return;
         }
-
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
@@ -5473,14 +5374,9 @@ amp.stats.event = function(dom,type,event,value){
             this.show();
         }
         if(scale==1){
-            this.animate(this.newSize,this.getPixPos(), function(){
-                self.hide();
-                self.updateImageSrc(false);
-            });
+            this.animate(this.newSize,this.getPixPos(), $.proxy(this.hide,this));
         } else {
-            this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scale_increased);
-            });
+            this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
         this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
@@ -5510,7 +5406,6 @@ amp.stats.event = function(dom,type,event,value){
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        this._preloaderImgLoaded = false;
         this.$preloader.attr('src',src);
     };
     zoomArea.prototype.setImage = function() {
@@ -5830,7 +5725,6 @@ amp.stats.event = function(dom,type,event,value){
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -5848,13 +5742,8 @@ amp.stats.event = function(dom,type,event,value){
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            if (this.isIE){
-              children.css({'z-index':-1});
-              children.eq(this._index-1).css('z-index', 1);
-            } else {
-              children.css({'display':'none'});
-              children.eq(this._index-1).css('display','block');
-            }
+            children.css({'display':'none'});
+            children.eq(this._index-1).css('display','block');
             children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
@@ -6210,14 +6099,14 @@ amp.stats.event = function(dom,type,event,value){
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
-                
+
                 var speed = distance/time,
                     travelSpeed = speed,
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0,
-                    timeInterval = 10; // time interval in ms
+                    travelTime = 0;
+
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
@@ -6345,19 +6234,16 @@ amp.stats.event = function(dom,type,event,value){
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-            if(this._index == _index){
+
+            if (this._index == _index) {
                 return;
             }
-            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            if (this.isIE){
-              nextItem.css('z-index', 1);
-              currItem.css('z-index', -1);
-            }else{
-              nextItem.css('display', 'block');
-              currItem.css('display', 'none');
-            }
+
+            // toggle item visibility
+            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
+            nextItem.css('display', 'block');
             currItem.removeClass(this.options.states.selected);
-            this._setIndex(_index);
+            currItem.css('display', 'none');
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
