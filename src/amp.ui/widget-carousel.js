@@ -10,6 +10,7 @@
             start:1,
             preferForward: false,
             no3D: false,
+            thumbWidthExceed:0,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -58,7 +59,7 @@
             this._children.addClass('amp-slide');
             this._calcSize();
             this._chooseLayoutManager();
-   
+
             this._children.eq(this._index-1).addClass(this.options.states.selected);
 
             if(this.options.onActivate.goTo || this.options.onActivate.select ) {
@@ -314,8 +315,8 @@
         },
         _preloadNext:function(){
             if(this.options.preloadNext) {
-
-                var index = this._loopIndex(true,this._index,1);
+                var num = this._visible + (this._index - 1);
+                var index = this._loopIndex(true,num,1);
                 var nextNextItem = this._children.eq(index-1);
                 this.callChildMethod(nextNextItem,'preload',true);
             }
@@ -721,6 +722,7 @@
                     this.focusNoLoop(_index,false);
                 } else {
                     this.arrange(_index);
+                    this.focusLoop(_index, false);
                 }
             };
 
@@ -750,13 +752,15 @@
                     var pos = this.metrics[i].pos;
                     var elm = widget._children.eq(i);
                     var elmSize = this.metrics[i].size;
-                    if(pos>=target && (pos+elmSize-target)<=widget._elmSize()){
-                        widget._setState(elm,'visible');
+                    var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
+
+                    if (pos >= target && (pos + elmSize - widget.options.thumbWidthExceed - bounds - target) <= widget._elmSize()) {
+                        widget._setState(elm, 'visible');
                         visible++;
-                    } else if ((pos+elmSize>target && (pos+elmSize-target)<=widget._elmSize()) || (pos>=target&&(pos-target)<widget._elmSize())) {
-                        widget._setState(elm,'partial');
+                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) < widget._elmSize()) || (pos > target && (pos - target) < widget._elmSize())) {
+                        widget._setState(elm, 'partial');
                     } else {
-                        widget._setState(elm,'invisible');
+                        widget._setState(elm, 'invisible');
                     }
                 }
                 widget._visible = visible;
@@ -768,6 +772,8 @@
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
+                this.setVisibleStates(_index,target);
+
                 widget._moveElements(target,function(){
                     widget._container[0].style[widget._canCSS3.transform] = '';
                     widget.options.dir === 'horz' ? widget._container[0].style.left = '' : widget._container[0].style.top = '';
