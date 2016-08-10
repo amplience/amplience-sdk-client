@@ -772,6 +772,7 @@
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
+
                 this.setVisibleStates(_index,target);
 
                 widget._moveElements(target,function(){
