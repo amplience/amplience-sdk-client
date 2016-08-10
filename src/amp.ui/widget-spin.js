@@ -436,8 +436,8 @@
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0;
-
+                    travelTime = 0,
+                    timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
