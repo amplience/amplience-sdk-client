@@ -41,6 +41,8 @@
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .amp-zoom,
 .amp-zoomed,
@@ -53,6 +55,8 @@
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .amp-frame img,
 .amp-layer img {
@@ -62,6 +66,8 @@
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .amp-main-img {
   width: 100%;
@@ -105,7 +111,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: relative;
   left: 0;
   top: 0;
 }
@@ -207,6 +213,8 @@
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   max-height: none!important;
 }
 .amp-zoomed-clone {

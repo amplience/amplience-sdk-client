@@ -1080,7 +1080,7 @@ function objLength(obj) {
  * @param {Function} error Callback function called on unsuccessful load
  * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout) {
+amp.get = function (assets, success, error, videoSort, timeout, transformData) {
     var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
@@ -1107,7 +1107,10 @@ amp.get = function (assets, success, error, videoSort, timeout) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                });
+                },
+                    false,
+                    timeout,
+                    transformData || false);
             } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
@@ -1132,10 +1135,18 @@ amp.get = function (assets, success, error, videoSort, timeout) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success)
+        if(objLength(dataWin)>0 && success) {
+            if(transformData && typeof transformData === 'function'){
+                dataWin = transformData(dataWin);
+            }
             success(dataWin);
-        if(objLength(dataFail)>0 && error)
+        }
+        if(objLength(dataFail)>0 && error) {
+            if(transformData && typeof transformData === 'function'){
+                dataFail = transformData(dataFail);
+            }
             error(dataFail);
+        }
     };
 
     var isValid = function(asset){
@@ -6114,7 +6125,7 @@ amp.stats.event = function(dom,type,event,value){
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -6137,7 +6148,6 @@ amp.stats.event = function(dom,type,event,value){
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -6145,10 +6155,6 @@ amp.stats.event = function(dom,type,event,value){
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
@@ -6217,8 +6223,8 @@ amp.stats.event = function(dom,type,event,value){
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0;
-
+                    travelTime = 0,
+                    timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;

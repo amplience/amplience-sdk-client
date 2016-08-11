@@ -333,7 +333,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -356,7 +356,6 @@
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -364,10 +363,6 @@
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
