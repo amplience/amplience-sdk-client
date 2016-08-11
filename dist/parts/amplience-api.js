@@ -1108,7 +1108,7 @@ amp.get = function (assets, success, error, videoSort, timeout) {
                     data = removeData(vData,data);
                     allLoaded();
                 });
-            } else { 
+            } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
                     if(videoSort) {
