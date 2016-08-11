@@ -2551,6 +2551,7 @@ amp.stats.event = function(dom,type,event,value){
             this._visible = 0;
             this._asyncMethods = [];
             this._canNext = true;
+            this._movedCounter = 0;
             var self = this;
 
             this.options.delay = Math.max(this.options.delay,this.options.animDuration+1);
@@ -2581,8 +2582,11 @@ amp.stats.event = function(dom,type,event,value){
                         },1)
 
                     };
-                    var move = function() {
+                    var move = function(evt) {
+                        self._movedCounter +=1;
+                        if(self._movedCounter >= 7){
                         self.moved = true;
+                        }
                     };
                     var activate = (function(_i){
                         var me = self;
@@ -3023,6 +3027,9 @@ amp.stats.event = function(dom,type,event,value){
                 if(widget.canTouch && widget.options.gesture.enabled) {
                     widget._children.on('touchstart', $.proxy(this.start,this));
                 }
+                else{
+                    widget._children.on('mousedown', $.proxy(this.start,this));
+                }
             };
 
             m.start = function(e){
@@ -3049,6 +3056,7 @@ amp.stats.event = function(dom,type,event,value){
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
+                $(window).on('mouseup',$.proxy(this.stop,this));
                 return true;
             };
 
@@ -3087,7 +3095,6 @@ amp.stats.event = function(dom,type,event,value){
 
                 if(widget.options.dir == this.moveDir){
                     return false;
-                    e.preventDefault();
                 }
             };
 
@@ -3130,9 +3137,11 @@ amp.stats.event = function(dom,type,event,value){
             };
 
             m.stop = function(e){
+                widget._movedCounter = 0;
                 $(window).off('touchmove',$.proxy(this.move,this));
                 $(window).off('touchcancel',$.proxy(this.stop,this));
                 $(window).off('touchend',$.proxy(this.stop,this));
+                $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
                     var nearest = this.findNearest();
@@ -6125,7 +6134,7 @@ amp.stats.event = function(dom,type,event,value){
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -6148,7 +6157,6 @@ amp.stats.event = function(dom,type,event,value){
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -6156,10 +6164,6 @@ amp.stats.event = function(dom,type,event,value){
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
