@@ -559,22 +559,22 @@
 
     };
 
-     zoomArea.prototype.updateImageSrc = function(scale_increased){
+     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
-        var interval_num = 0;
+        var intervalNum = 0;
         if(this.preloadedImgInterval){
             clearInterval(this.preloadedImgInterval);
         }
 
-        if(!scale_increased){
+        if(!scaleIncreased){
             self.$preloader.addClass('amp-hidden');
             return false;
         }
 
         this.preloadedImgInterval = setInterval(function(){
-            interval_num +=1;
+            intervalNum +=1;
 
-            if(interval_num >= 30){
+            if(intervalNum >= 30){
                 //Clear interval is number of iterations >= 30,
                 //which equals to 6 seconds (30 * 200)
                 clearInterval(self.preloadedImgInterval);
@@ -603,7 +603,7 @@
 
     zoomArea.prototype.setScale = function(scale,cb){
         var self = this;
-        var scale_increased = scale > this.scale;
+        var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
         }
@@ -629,7 +629,7 @@
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scale_increased);
+                self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
