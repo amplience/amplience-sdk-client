@@ -103,17 +103,10 @@
   left: 0;
   top: 0;
 }
-.amp-spin {
-  width: 100%;
-  height: 100%;
-}
-.amp-spin .amp-frame {
-  display: block;
-  width: 100%;
-  height: 100%;
+.amp-spin .amp-frame-clone {
   position: relative;
-  left: 0;
-  top: 0;
+  z-index: -1;
+  visibility: hidden;
 }
 .amp-loading {
   top: 0;
