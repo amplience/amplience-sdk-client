@@ -51,8 +51,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0;
-            this.isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
+            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -70,13 +69,19 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            if (this.isIE || this.isFirefox) {
-                children.css({'z-index': -1});
-                children.eq(this._index - 1).css('z-index', 1);
+            var currentChild =  children.eq(this._index-1);
+            var currentChildClone = currentChild.clone();
+            currentChildClone.addClass('amp-frame-clone');
+            if (this.isWebkit){
+                children.css({'display':'none'});
+                currentChild.css('display','block');
+            } else {
+                children.css({'z-index':-1});
+                currentChild.css('z-index', 1);
             }
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
-            children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
+
+            this.element.append(currentChildClone);
+            currentChild.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
                     return _self._calcSize();
@@ -564,13 +569,13 @@
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            if (this.isIE || this.isFirefox){
-                nextItem.css('z-index', 1);
-                currItem.css('z-index', -1);
+            if (this.isWebkit){
+                nextItem.css('display', 'block');
+                currItem.css('display', 'none');
+            }else{
+                nextItem.css('zIndex', 1);
+                currItem.css('zIndex', -1);
             }
-            nextItem.css('display', 'block');
-            currItem.css('display', 'none');
-
             currItem.removeClass(this.options.states.selected);
             this._setIndex(_index);
 
