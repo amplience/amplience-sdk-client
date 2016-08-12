@@ -3639,7 +3639,7 @@ amp.stats.event = function(dom,type,event,value){
         },
 
         dimensionsParams: function (imgSrc) {
-            //Dynamically assign width and/or heigt attributes in src attribute of an image
+            //Dynamically assign width and/or height attributes in src attribute of an image
             var self = this;
             var dimensionsObj = self.element.data('amp-dimensions');
             var src = imgSrc;
@@ -3652,10 +3652,10 @@ amp.stats.event = function(dom,type,event,value){
 
             $.each(dimensionsObj[0], function (key, obj) {
                 var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
-                var dublicate = src.match(regExp);
+                var duplicate = src.match(regExp);
 
-                if (dublicate && dublicate.length > 0) {
-                    $.each(dublicate, function (i, v) {
+                if (duplicate && duplicate.length > 0) {
+                    $.each(duplicate, function (i, v) {
                         src = src.replace(v, '');
                     });
                 }
@@ -5430,22 +5430,22 @@ amp.stats.event = function(dom,type,event,value){
 
     };
 
-     zoomArea.prototype.updateImageSrc = function(scale_increased){
+     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
-        var interval_num = 0;
+        var intervalNum = 0;
         if(this.preloadedImgInterval){
             clearInterval(this.preloadedImgInterval);
         }
 
-        if(!scale_increased){
+        if(!scaleIncreased){
             self.$preloader.addClass('amp-hidden');
             return false;
         }
 
         this.preloadedImgInterval = setInterval(function(){
-            interval_num +=1;
+            intervalNum +=1;
 
-            if(interval_num >= 30){
+            if(intervalNum >= 30){
                 //Clear interval is number of iterations >= 30,
                 //which equals to 6 seconds (30 * 200)
                 clearInterval(self.preloadedImgInterval);
@@ -5474,7 +5474,7 @@ amp.stats.event = function(dom,type,event,value){
 
     zoomArea.prototype.setScale = function(scale,cb){
         var self = this;
-        var scale_increased = scale > this.scale;
+        var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
         }
@@ -5500,7 +5500,7 @@ amp.stats.event = function(dom,type,event,value){
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scale_increased);
+                self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
@@ -5870,14 +5870,19 @@ amp.stats.event = function(dom,type,event,value){
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
+            var currentChild =  children.eq(this._index-1);
+            var currentChildClone = currentChild.clone();
+            currentChildClone.addClass('amp-frame-clone');
             if (this.isWebkit){
                 children.css({'display':'none'});
-                children.eq(this._index-1).css('display','block');
+                currentChild.css('display','block');
             } else {
                 children.css({'z-index':-1});
-                children.eq(this._index-1).css('z-index', 1);
+                currentChild.css('z-index', 1);
             }
-            children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
+
+            this.element.append(currentChildClone);
+            currentChild.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
                     return _self._calcSize();
