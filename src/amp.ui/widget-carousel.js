@@ -806,6 +806,11 @@
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
+                    clone.css({
+                        width: elm.width(),
+                        height: elm.height()
+                    });
+
                 }
             };
 
