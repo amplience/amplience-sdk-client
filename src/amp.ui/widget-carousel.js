@@ -473,7 +473,7 @@
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index<this.count);
+            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
         },
         redraw:function(){
             if(this._animating) {
