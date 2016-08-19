@@ -160,6 +160,7 @@ The default control bar that is a container for most of the controls.
   right: 0;
   /* Height includes any margin you want above or below control items *///
   height: 3.0em;
+  line-height: 3em;
 
   .background-color-with-alpha(@control-bg-color, @control-bg-alpha);
 }
@@ -421,6 +422,9 @@ fonts to show/hide properly.
   width: 3.8em;
   cursor: pointer;
   float: right;
+  position: absolute;
+  top: 0;
+  right: 40px;
 }
 .amp-video-skin .vjs-fullscreen-control:before {
   content: @fullscreen-enter-icon;
@@ -507,7 +511,7 @@ easily in the skin designer. http://designer.videojs.com/
   line-height: @big-play-height;
   text-shadow: 0.05em 0.05em 0.1em #000;
   text-align: center /* Needed for IE8 */;
-
+  top: 0;
   position: absolute;
   left: 0;
   width: 100%;
