@@ -141,10 +141,12 @@
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
+                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
+                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
