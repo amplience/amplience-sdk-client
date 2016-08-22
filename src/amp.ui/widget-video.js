@@ -234,11 +234,11 @@
             if (state === void 0)
                 return this._currentState;
             this._currentState = state;
-            this.statePlayCheck(state);
+            this._statePlayCheck(state);
             this._trigger("stateChange", null, {state:state})
         },
-        statePlayCheck: function(state){
-            if (state === 3) {
+        _statePlayCheck: function(state){
+            if (state === this._states.playing) {
                 this.element.find('.vjs-poster').addClass('none');
             }
         },
