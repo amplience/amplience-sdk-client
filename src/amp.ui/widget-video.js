@@ -66,7 +66,7 @@
 
             this._player.ready(function () {
 
-                if(this.options().muted){
+                if(this.options_.muted){
                     this.volume(0);
                 }
 
