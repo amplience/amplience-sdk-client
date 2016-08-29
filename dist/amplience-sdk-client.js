@@ -2912,13 +2912,20 @@ amp.stats.event = function(dom,type,event,value){
         _measureElement : function (index) {
             var size,
                 horz = this.options.dir == 'horz',
-                elm = this._children.eq(index);
+                elm = this._children.eq(index),
+                clientHeight = elm[0].getBoundingClientRect().height;
 
             elm.css('display','block');
             if(horz) {
                 size = elm.outerWidth(true);
             } else {
                 size = elm.outerHeight(true);
+                if(clientHeight && (size - clientHeight <= 1)){
+                    size = clientHeight;
+                }
+                if(!clientHeight){
+                    size = elm.outerHeight(true) - 1;
+                }
             }
             elm.css('display','');
             return size;
@@ -2983,7 +2990,7 @@ amp.stats.event = function(dom,type,event,value){
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index<this.count);
+            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
         },
         redraw:function(){
             if(this._animating) {
@@ -3316,6 +3323,14 @@ amp.stats.event = function(dom,type,event,value){
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
+                    var borderW = elm.css('box-sizing') == 'border-box' ? elm.css('borderBottomWidth')
+                    + elm.css('borderTopWidth') : 0;
+                    var borderH = borderW ? elm.css('borderLeftWidth') + elm.css('borderRightWidth') : 0;
+                    clone.css({
+                        width: elm.width() + borderW,
+                        height: elm.height() + borderH
+                    });
+
                 }
             };
 
@@ -5608,6 +5623,11 @@ amp.stats.event = function(dom,type,event,value){
             }
 
             this._player.ready(function () {
+
+                if(this.options().muted){
+                    this.volume(0);
+                }
+
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {
@@ -5683,10 +5703,12 @@ amp.stats.event = function(dom,type,event,value){
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
+                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
+                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
@@ -5773,9 +5795,14 @@ amp.stats.event = function(dom,type,event,value){
         state: function(state){
             if (state === void 0)
                 return this._currentState;
-
             this._currentState = state;
+            this._statePlayCheck(state);
             this._trigger("stateChange", null, {state:state})
+        },
+        _statePlayCheck: function(state){
+            if (state === this._states.playing) {
+                this.element.find('.vjs-poster').addClass('none');
+            }
         },
         _track: function (event, value) {
             this._trigger(event, null, value);

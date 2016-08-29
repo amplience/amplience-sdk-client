@@ -36,10 +36,10 @@
             return this.options;
         },
         _create: function () {
-            this.element.addClass('amp amp-video');
+            // this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + this.options.skin);
+            video.addClass('video-js' + ' ' + 'vjs-big-play-centered');// + ' ' + this.options.skin);
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -66,6 +66,11 @@
             }
 
             this._player.ready(function () {
+
+                if(this.options().muted){
+                    this.volume(0);
+                }
+
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {

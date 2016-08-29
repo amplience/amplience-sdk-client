@@ -7,7 +7,7 @@
         "es6-promise": "~1.0.0",
         "jquery": "1.10.0",
         "jquery-ui": "1.10.0",
-        "video.js": "4.4.0"
+        "video.js": "latest"
     },
     "ignore": ["assets/*",
         ".gitignore",
