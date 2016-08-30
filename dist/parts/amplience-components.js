@@ -2335,7 +2335,6 @@
                 }
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
 
             if (visible) {
                 if(this.options.preload.image == 'visible'){
@@ -2350,6 +2349,8 @@
             } else {
                 this.zoom(false);
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         preload:function() {
@@ -2913,7 +2914,7 @@
             if (this._visible == visible) {
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
+
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
@@ -2921,6 +2922,8 @@
             } else {
                 this.zoomOutFull();
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
@@ -3641,8 +3644,9 @@
             if(visible == this._visible)
                 return;
 
+            this._track('visible',{'visible':visible});
+
             if (visible) {
-                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {

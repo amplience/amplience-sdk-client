@@ -582,7 +582,6 @@
                 }
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
 
             if (visible) {
                 if(this.options.preload.image == 'visible'){
@@ -597,6 +596,8 @@
             } else {
                 this.zoom(false);
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         preload:function() {

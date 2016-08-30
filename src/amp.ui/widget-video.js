@@ -160,8 +160,9 @@
             if(visible == this._visible)
                 return;
 
+            this._track('visible',{'visible':visible});
+
             if (visible) {
-                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {

@@ -103,7 +103,7 @@
             if (this._visible == visible) {
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
+
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
@@ -111,6 +111,8 @@
             } else {
                 this.zoomOutFull();
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
