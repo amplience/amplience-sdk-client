@@ -52,6 +52,7 @@
                 });
 
                 this.element.parent().on('mousedown touchstart',$.proxy(function(e){
+                    this._touchmove = false;
                     // are we panning? if so don't let mousedown trigger anything else
                     if(this.scale>1) {
                         e.stopPropagation();
@@ -72,6 +73,7 @@
             }
             if(this.options.pinch) {
                 this.element.parent().on('touchstart',$.proxy(function(e){
+                    this_touchmove = false;
                     if(this.pincher) {
                         this.pincher.remove();
                         delete this.pincher;
@@ -246,11 +248,19 @@
             },this));
         },
         _setPos : function(e){
+            if(e.type === 'touchmove'){
+                this._touchmove = true;
+            }
             this._track('settingPos',{domEvent:e});
             var pos = e?this._getPercentagePos(e):{x:0.5,y:0.5};
             this.zoomArea.setPosition(pos.x,pos.y)
         },
         zoomOut:function(e) {
+
+            if(this._touchmove) {
+                return false;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale -= this.options.scaleStep;

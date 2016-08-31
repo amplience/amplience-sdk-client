@@ -5097,7 +5097,7 @@ amp.stats.event = function(dom,type,event,value){
                 if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
                     $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
                 }
-            },this),1);
+            },this),100);
         },
 
         zoomInClick: function (e) {
