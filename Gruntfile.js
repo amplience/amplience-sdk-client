@@ -4,21 +4,36 @@
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         default: {},
-        less: {
-            options: {
-                ieCompat:true
-            },
+        // less: {
+        //     options: {
+        //         ieCompat:true
+        //     },
+        //     development: {
+        //         files: {
+        //             "dist/amplience-sdk-client.css": "css/*.less"
+        //         }
+        //     },
+        //     production: {
+        //         options: {
+        //             cleancss: true
+        //         },
+        //         files: {
+        //             "dist/amplience-sdk-client.min.css": "css/*.less"
+        //         }
+        //     }
+        // },
+        sass: {
             development: {
                 files: {
-                    "dist/amplience-sdk-client.css": "css/*.less"
+                    "dist/amplience-sdk-client.css": "css/video-js.scss"
                 }
             },
             production: {
                 options: {
-                    cleancss: true
+                    sourcemap: 'none'
                 },
                 files: {
-                    "dist/amplience-sdk-client.min.css": "css/*.less"
+                    "dist/amplience-sdk-client.min.css": "css/video-js.scss"
                 }
             }
         },
@@ -61,7 +76,7 @@
         },
         watch: {
              files: ['Gruntfile.js', 'src/amp/*', 'src/amp.ui/*','css/*'],
-             tasks: [ 'includes:js','concat', 'strip_code','copy','less', 'uglify']
+             tasks: [ 'includes:js','concat', 'strip_code','copy','sass', 'uglify']
         },
 
 
@@ -237,9 +252,11 @@
 
     grunt.loadNpmTasks('grunt-replace');
 
+    grunt.loadNpmTasks('grunt-contrib-sass');
+
 
     // Default task(s).
-    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','less', 'uglify','concat:together','replace']);
+    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','sass', 'uglify','concat:together','replace']);
 
     // Default task(s).
     grunt.registerTask('tests', ['default','karma']);

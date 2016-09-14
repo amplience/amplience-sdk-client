@@ -402,13 +402,20 @@
         _measureElement : function (index) {
             var size,
                 horz = this.options.dir == 'horz',
-                elm = this._children.eq(index);
+                elm = this._children.eq(index),
+                clientHeight = elm[0].getBoundingClientRect().height;
 
             elm.css('display','block');
             if(horz) {
                 size = elm.outerWidth(true);
             } else {
                 size = elm.outerHeight(true);
+                if(clientHeight && (size - clientHeight <= 1)){
+                    size = clientHeight;
+                }
+                if(!clientHeight){
+                    size = elm.outerHeight(true) - 1;
+                }
             }
             elm.css('display','');
             return size;
@@ -473,7 +480,7 @@
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index<this.count);
+            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
         },
         redraw:function(){
             if(this._animating) {
@@ -806,6 +813,14 @@
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
+                    var borderW = elm.css('box-sizing') == 'border-box' ? elm.css('borderBottomWidth')
+                    + elm.css('borderTopWidth') : 0;
+                    var borderH = borderW ? elm.css('borderLeftWidth') + elm.css('borderRightWidth') : 0;
+                    clone.css({
+                        width: elm.width() + borderW,
+                        height: elm.height() + borderH
+                    });
+
                 }
             };
 

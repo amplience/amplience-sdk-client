@@ -2912,13 +2912,20 @@ amp.stats.event = function(dom,type,event,value){
         _measureElement : function (index) {
             var size,
                 horz = this.options.dir == 'horz',
-                elm = this._children.eq(index);
+                elm = this._children.eq(index),
+                clientHeight = elm[0].getBoundingClientRect().height;
 
             elm.css('display','block');
             if(horz) {
                 size = elm.outerWidth(true);
             } else {
                 size = elm.outerHeight(true);
+                if(clientHeight && (size - clientHeight <= 1)){
+                    size = clientHeight;
+                }
+                if(!clientHeight){
+                    size = elm.outerHeight(true) - 1;
+                }
             }
             elm.css('display','');
             return size;
@@ -2983,7 +2990,7 @@ amp.stats.event = function(dom,type,event,value){
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index<this.count);
+            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
         },
         redraw:function(){
             if(this._animating) {
@@ -3316,6 +3323,14 @@ amp.stats.event = function(dom,type,event,value){
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
+                    var borderW = elm.css('box-sizing') == 'border-box' ? elm.css('borderBottomWidth')
+                    + elm.css('borderTopWidth') : 0;
+                    var borderH = borderW ? elm.css('borderLeftWidth') + elm.css('borderRightWidth') : 0;
+                    clone.css({
+                        width: elm.width() + borderW,
+                        height: elm.height() + borderH
+                    });
+
                 }
             };
 
@@ -4396,7 +4411,6 @@ amp.stats.event = function(dom,type,event,value){
                 }
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
 
             if (visible) {
                 if(this.options.preload.image == 'visible'){
@@ -4411,6 +4425,8 @@ amp.stats.event = function(dom,type,event,value){
             } else {
                 this.zoom(false);
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         preload:function() {
@@ -4923,6 +4939,7 @@ amp.stats.event = function(dom,type,event,value){
                 });
 
                 this.element.parent().on('mousedown touchstart',$.proxy(function(e){
+                    this._touchmove = false;
                     // are we panning? if so don't let mousedown trigger anything else
                     if(this.scale>1) {
                         e.stopPropagation();
@@ -4943,6 +4960,7 @@ amp.stats.event = function(dom,type,event,value){
             }
             if(this.options.pinch) {
                 this.element.parent().on('touchstart',$.proxy(function(e){
+                    this_touchmove = false;
                     if(this.pincher) {
                         this.pincher.remove();
                         delete this.pincher;
@@ -4974,7 +4992,7 @@ amp.stats.event = function(dom,type,event,value){
             if (this._visible == visible) {
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
+
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
@@ -4982,6 +5000,8 @@ amp.stats.event = function(dom,type,event,value){
             } else {
                 this.zoomOutFull();
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
@@ -5079,7 +5099,7 @@ amp.stats.event = function(dom,type,event,value){
                 if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
                     $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
                 }
-            },this),1);
+            },this),100);
         },
 
         zoomInClick: function (e) {
@@ -5115,11 +5135,19 @@ amp.stats.event = function(dom,type,event,value){
             },this));
         },
         _setPos : function(e){
+            if(e.type === 'touchmove'){
+                this._touchmove = true;
+            }
             this._track('settingPos',{domEvent:e});
             var pos = e?this._getPercentagePos(e):{x:0.5,y:0.5};
             this.zoomArea.setPosition(pos.x,pos.y)
         },
         zoomOut:function(e) {
+
+            if(this._touchmove) {
+                return false;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale -= this.options.scaleStep;
@@ -5578,10 +5606,9 @@ amp.stats.event = function(dom,type,event,value){
             return this.options;
         },
         _create: function () {
-            this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + this.options.skin);
+            video.addClass('video-js' + ' ' + 'vjs-big-play-centered');
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -5608,6 +5635,11 @@ amp.stats.event = function(dom,type,event,value){
             }
 
             this._player.ready(function () {
+
+                if(this.options_.muted){
+                    this.volume(0);
+                }
+
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {
@@ -5683,10 +5715,12 @@ amp.stats.event = function(dom,type,event,value){
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
+                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
+                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
@@ -5696,8 +5730,9 @@ amp.stats.event = function(dom,type,event,value){
             if(visible == this._visible)
                 return;
 
+            this._track('visible',{'visible':visible});
+
             if (visible) {
-                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {
@@ -5773,9 +5808,14 @@ amp.stats.event = function(dom,type,event,value){
         state: function(state){
             if (state === void 0)
                 return this._currentState;
-
             this._currentState = state;
+            this._statePlayCheck(state);
             this._trigger("stateChange", null, {state:state})
+        },
+        _statePlayCheck: function(state){
+            if (state === this._states.playing) {
+                this.element.find('.vjs-poster').addClass('none');
+            }
         },
         _track: function (event, value) {
             this._trigger(event, null, value);

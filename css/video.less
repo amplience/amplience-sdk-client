@@ -160,6 +160,7 @@ The default control bar that is a container for most of the controls.
   right: 0;
   /* Height includes any margin you want above or below control items *///
   height: 3.0em;
+  line-height: 3em;
 
   .background-color-with-alpha(@control-bg-color, @control-bg-alpha);
 }
@@ -211,7 +212,7 @@ fonts to show/hide properly.
   text-align: center;
   margin: 0;
   padding: 0;
-  height: 3.0em;
+  height: 100%;
   width: 4em;
 }
 
@@ -219,13 +220,6 @@ fonts to show/hide properly.
 .amp-video-skin .vjs-control:before {
   font-family: VideoJS;
   font-size: 1.5em;
-  line-height: 2;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
 }
 
@@ -421,6 +415,9 @@ fonts to show/hide properly.
   width: 3.8em;
   cursor: pointer;
   float: right;
+  position: absolute;
+  top: 0;
+  right: 40px;
 }
 .amp-video-skin .vjs-fullscreen-control:before {
   content: @fullscreen-enter-icon;
@@ -507,7 +504,7 @@ easily in the skin designer. http://designer.videojs.com/
   line-height: @big-play-height;
   text-shadow: 0.05em 0.05em 0.1em #000;
   text-align: center /* Needed for IE8 */;
-
+  top: 0;
   position: absolute;
   left: 0;
   width: 100%;
@@ -746,7 +743,9 @@ body.vjs-full-window {
   position: relative;
   width: 100%;
 }
-
+.vjs-poster.none {
+  display: none;
+}
 .vjs-poster img {
   display: block;
   max-height: 100%;
