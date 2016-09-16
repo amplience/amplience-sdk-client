@@ -4,28 +4,10 @@
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         default: {},
-        // less: {
-        //     options: {
-        //         ieCompat:true
-        //     },
-        //     development: {
-        //         files: {
-        //             "dist/amplience-sdk-client.css": "css/*.less"
-        //         }
-        //     },
-        //     production: {
-        //         options: {
-        //             cleancss: true
-        //         },
-        //         files: {
-        //             "dist/amplience-sdk-client.min.css": "css/*.less"
-        //         }
-        //     }
-        // },
         sass: {
             development: {
                 files: {
-                    "dist/amplience-sdk-client.css": "css/video-js.scss"
+                    "dist/amplience-sdk-client.css": "css/all.scss"
                 }
             },
             production: {
@@ -33,7 +15,7 @@
                     sourcemap: 'none'
                 },
                 files: {
-                    "dist/amplience-sdk-client.min.css": "css/video-js.scss"
+                    "dist/amplience-sdk-client.min.css": "css/all.scss"
                 }
             }
         },
@@ -225,7 +207,9 @@
         copy: {
             assets:{
                 files: [
-                    {expand: true, cwd: 'assets/', src: ['**'], dest: 'dist/assets'}
+                    {expand: true, cwd: 'assets/', src: ['**'], dest: 'dist/assets'},
+                    {expand: true, cwd: 'bower_components/video.js/dist/', src: ['video.min.js', 'video-js.min.css', 'video-js.swf'], dest: 'dist/video-js'},
+                    {expand: true, cwd: 'bower_components/video.js/dist/font/', src: ['**'], dest: 'dist/video-js/font'}
                 ]
              }
         }

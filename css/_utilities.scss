@@ -1,5 +1,3 @@
-@import "utilities/linear-gradient";
-
 @mixin background-color-with-alpha($color, $alpha) {
   background-color: $color;
   background-color: rgba($color, $alpha);
