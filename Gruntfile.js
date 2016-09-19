@@ -7,7 +7,7 @@
         sass: {
             development: {
                 files: {
-                    "dist/amplience-sdk-client.css": "css/all.scss"
+                    "dist/amplience-sdk-client.css": "css/amp.scss"
                 }
             },
             production: {
@@ -15,7 +15,7 @@
                     sourcemap: 'none'
                 },
                 files: {
-                    "dist/amplience-sdk-client.min.css": "css/all.scss"
+                    "dist/amplience-sdk-client.min.css": "css/amp.scss"
                 }
             }
         },
