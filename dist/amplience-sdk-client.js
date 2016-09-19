@@ -5072,6 +5072,7 @@ amp.stats.event = function(dom,type,event,value){
                     return;
                 }
             }
+            console.log('zoom in');
             if(e) {
                 e.preventDefault();
             }
@@ -5449,7 +5450,7 @@ amp.stats.event = function(dom,type,event,value){
             pos.y = this.getPixPos(0.5,0.5).y;
         }
 
-        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.stop(true,true).animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
             this.animating = false;
             if (cb) {
                 cb();
