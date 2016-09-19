@@ -2996,7 +2996,6 @@
                     return;
                 }
             }
-            console.log('zoom in');
             if(e) {
                 e.preventDefault();
             }
@@ -3005,6 +3004,15 @@
                     return;
                 }
             }
+
+            if (this.zoomArea && this.zoomArea.zoomProcess === 'progress') {
+                return;
+            } else if (this.zoomArea) {
+                this.zoomArea.zoomProcess = 'progress';
+                this.zoomArea.zoomOutProcess = null;
+                this.zoomArea.zoomInProcess = 'progress';
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
@@ -3071,6 +3079,14 @@
 
             if(this._touchmove) {
                 return false;
+            }
+
+            if (this.zoomArea.zoomProcess === 'progress') {
+                return;
+            } else {
+                this.zoomArea.zoomProcess = 'progress';
+                this.zoomArea.zoomOutProcess = 'progress';
+                this.zoomArea.zoomInProcess = null;
             }
 
             var currScale = this.scale;
@@ -3374,8 +3390,9 @@
             pos.y = this.getPixPos(0.5,0.5).y;
         }
 
-        this.$zoomed.stop(true,true).animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
             this.animating = false;
+            this.zoomProcess = null;
             if (cb) {
                 cb();
             }
@@ -3417,7 +3434,9 @@
                 self.$preloader.attr(this.name, this.value);
             });
 
-            self.$preloader.removeClass('amp-hidden');
+            if (!self.zoomOutProcess === 'progress') {
+                self.$preloader.removeClass('amp-hidden');
+            }
 
             self.setImage();
 
@@ -3453,7 +3472,7 @@
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scaleIncreased);
+                    self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
