@@ -2930,6 +2930,7 @@
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
+            this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -2938,8 +2939,17 @@
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
+                            var self = this;
+                            var img = new Image();
+                            img.src = this.element.attr('src');
+                            var $loading = $('<div class="amp-loading"></div>')
+                            this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
-                            resolve(this.zoomArea);
+
+                            img.onload = function(){
+                                $loading.remove();
+                                resolve(self.zoomArea);
+                            }
                         } else {
                             reject(false);
                         }
@@ -3004,15 +3014,6 @@
                     return;
                 }
             }
-
-            if (this.zoomArea && this.zoomArea.zoomProcess === 'progress') {
-                return;
-            } else if (this.zoomArea) {
-                this.zoomArea.zoomProcess = 'progress';
-                this.zoomArea.zoomOutProcess = null;
-                this.zoomArea.zoomInProcess = 'progress';
-            }
-
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
@@ -3077,16 +3078,9 @@
         },
         zoomOut:function(e) {
 
+        this.zoomArea.allowClone = false;
             if(this._touchmove) {
                 return false;
-            }
-
-            if (this.zoomArea.zoomProcess === 'progress') {
-                return;
-            } else {
-                this.zoomArea.zoomProcess = 'progress';
-                this.zoomArea.zoomOutProcess = 'progress';
-                this.zoomArea.zoomInProcess = null;
             }
 
             var currScale = this.scale;
@@ -3392,7 +3386,6 @@
 
         this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
             this.animating = false;
-            this.zoomProcess = null;
             if (cb) {
                 cb();
             }
@@ -3414,7 +3407,11 @@
 
         this.preloadedImgInterval = setInterval(function(){
             intervalNum +=1;
-
+            if (!self.allowClone) {
+                clearInterval(self.preloadedImgInterval);
+                self.$preloader.addClass('amp-hidden');
+                return false;
+            }
             if(intervalNum >= 30){
                 //Clear interval is number of iterations >= 30,
                 //which equals to 6 seconds (30 * 200)
@@ -3434,10 +3431,7 @@
                 self.$preloader.attr(this.name, this.value);
             });
 
-            if (!self.zoomOutProcess === 'progress') {
-                self.$preloader.removeClass('amp-hidden');
-            }
-
+            self.$preloader.removeClass('amp-hidden');
             self.setImage();
 
             clearInterval(self.preloadedImgInterval);
@@ -3449,6 +3443,13 @@
         var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
+        }
+
+        if(!scaleIncreased){
+            this.allowClone = false;
+        }
+        else{
+            this.allowClone = true;
         }
 
         if((scale < this.scale) && scale == 1) {
