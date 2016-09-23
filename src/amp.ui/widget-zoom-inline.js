@@ -203,6 +203,11 @@
                     return;
                 }
             }
+
+            if (this.animating) {
+                return;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
@@ -267,9 +272,13 @@
         },
         zoomOut:function(e) {
 
-        this.zoomArea.allowClone = false;
+            this.zoomArea.allowClone = false;
             if(this._touchmove) {
                 return false;
+            }
+
+            if (this.animating) {
+                return;
             }
 
             var currScale = this.scale;
