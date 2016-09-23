@@ -5829,13 +5829,7 @@ amp.stats.event = function(dom,type,event,value){
             if (state === void 0)
                 return this._currentState;
             this._currentState = state;
-            this._statePlayCheck(state);
             this._trigger("stateChange", null, {state:state})
-        },
-        _statePlayCheck: function(state){
-            if (state === this._states.playing) {
-                this.element.find('.vjs-poster').addClass('none');
-            }
         },
         _track: function (event, value) {
             this._trigger(event, null, value);
