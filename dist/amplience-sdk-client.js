@@ -5595,7 +5595,7 @@ amp.stats.event = function(dom,type,event,value){
             autoplay: false,
             loop: false,
             muted: false,
-            skin: 'amp-video-skin',
+            skin: '',
             responsive: true,
             preload: 'auto',
             pauseOnHide: true,
@@ -5626,9 +5626,10 @@ amp.stats.event = function(dom,type,event,value){
             return this.options;
         },
         _create: function () {
+            this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + 'vjs-big-play-centered');
+            video.addClass('video-js' + ' ' + this.options.skin + ' ' + 'vjs-big-play-centered');
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
