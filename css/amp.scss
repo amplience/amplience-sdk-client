@@ -225,3 +225,8 @@
 .amp-zoomed-clone.amp-hidden{
   display:none;
 }
+.video-js.vjs-ended {
+  .vjs-poster {
+    display: block;
+  }
+}

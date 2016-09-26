@@ -5006,6 +5006,7 @@ amp.stats.event = function(dom,type,event,value){
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
+            this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -5014,8 +5015,17 @@ amp.stats.event = function(dom,type,event,value){
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
+                            var self = this;
+                            var img = new Image();
+                            img.src = this.element.attr('src');
+                            var $loading = $('<div class="amp-loading"></div>')
+                            this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
-                            resolve(this.zoomArea);
+
+                            img.onload = function(){
+                                $loading.remove();
+                                resolve(self.zoomArea);
+                            }
                         } else {
                             reject(false);
                         }
@@ -5080,6 +5090,11 @@ amp.stats.event = function(dom,type,event,value){
                     return;
                 }
             }
+
+            if (this.animating) {
+                return;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
@@ -5144,8 +5159,13 @@ amp.stats.event = function(dom,type,event,value){
         },
         zoomOut:function(e) {
 
+            this.zoomArea.allowClone = false;
             if(this._touchmove) {
                 return false;
+            }
+
+            if (this.animating) {
+                return;
             }
 
             var currScale = this.scale;
@@ -5324,6 +5344,9 @@ amp.stats.event = function(dom,type,event,value){
         this.zoomArea = zoom.zoomArea;
         this.cb = cb;
         this.element = zoom.element;
+        if(!this.zoomArea.newSize){
+            this.zoomArea.newSize = {'x':this.zoomArea.$source.width(), 'y':this.zoomArea.$source.height()};
+        }
         this.currentPixPos = this.zoomArea.getPixPos();
         $(document).on('mousemove touchmove', $.proxy(this.move,this));
         $(document).on('mouseup touchend', $.proxy(this.end,this));
@@ -5472,7 +5495,11 @@ amp.stats.event = function(dom,type,event,value){
 
         this.preloadedImgInterval = setInterval(function(){
             intervalNum +=1;
-
+            if (!self.allowClone) {
+                clearInterval(self.preloadedImgInterval);
+                self.$preloader.addClass('amp-hidden');
+                return false;
+            }
             if(intervalNum >= 30){
                 //Clear interval is number of iterations >= 30,
                 //which equals to 6 seconds (30 * 200)
@@ -5493,7 +5520,6 @@ amp.stats.event = function(dom,type,event,value){
             });
 
             self.$preloader.removeClass('amp-hidden');
-
             self.setImage();
 
             clearInterval(self.preloadedImgInterval);
@@ -5505,6 +5531,13 @@ amp.stats.event = function(dom,type,event,value){
         var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
+        }
+
+        if(!scaleIncreased){
+            this.allowClone = false;
+        }
+        else{
+            this.allowClone = true;
         }
 
         if((scale < this.scale) && scale == 1) {
@@ -5528,7 +5561,7 @@ amp.stats.event = function(dom,type,event,value){
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scaleIncreased);
+                    self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
@@ -5575,7 +5608,7 @@ amp.stats.event = function(dom,type,event,value){
             autoplay: false,
             loop: false,
             muted: false,
-            skin: 'amp-video-skin',
+            skin: '',
             responsive: true,
             preload: 'auto',
             pauseOnHide: true,
@@ -5606,9 +5639,10 @@ amp.stats.event = function(dom,type,event,value){
             return this.options;
         },
         _create: function () {
+            this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + 'vjs-big-play-centered');
+            video.addClass('video-js' + ' ' + this.options.skin + ' ' + 'vjs-big-play-centered');
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -5809,13 +5843,7 @@ amp.stats.event = function(dom,type,event,value){
             if (state === void 0)
                 return this._currentState;
             this._currentState = state;
-            this._statePlayCheck(state);
             this._trigger("stateChange", null, {state:state})
-        },
-        _statePlayCheck: function(state){
-            if (state === this._states.playing) {
-                this.element.find('.vjs-poster').addClass('none');
-            }
         },
         _track: function (event, value) {
             this._trigger(event, null, value);
