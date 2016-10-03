@@ -194,13 +194,14 @@
   -o-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  max-height: none !important; }
+  max-height: none !important;
+  opacity: 1; }
 
 .amp-zoomed-clone {
   z-index: 1 !important; }
 
 .amp-zoomed-clone.amp-hidden {
-  display: none; }
+  opacity: 0; }
 
 .video-js.vjs-ended .vjs-poster {
   display: block; }

@@ -5006,6 +5006,7 @@ amp.stats.event = function(dom,type,event,value){
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
+            this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -5014,8 +5015,17 @@ amp.stats.event = function(dom,type,event,value){
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
+                            var self = this;
+                            var img = new Image();
+                            img.src = this.element.attr('src');
+                            var $loading = $('<div class="amp-loading"></div>')
+                            this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
-                            resolve(this.zoomArea);
+
+                            img.onload = function(){
+                                $loading.remove();
+                                resolve(self.zoomArea);
+                            }
                         } else {
                             reject(false);
                         }
@@ -5081,12 +5091,8 @@ amp.stats.event = function(dom,type,event,value){
                 }
             }
 
-            if (this.zoomArea && this.zoomArea.zoomProcess === 'progress') {
+            if (this.animating) {
                 return;
-            } else if (this.zoomArea) {
-                this.zoomArea.zoomProcess = 'progress';
-                this.zoomArea.zoomOutProcess = null;
-                this.zoomArea.zoomInProcess = 'progress';
             }
 
             var currScale = this.scale;
@@ -5153,16 +5159,13 @@ amp.stats.event = function(dom,type,event,value){
         },
         zoomOut:function(e) {
 
+            this.zoomArea.allowClone = false;
             if(this._touchmove) {
                 return false;
             }
 
-            if (this.zoomArea.zoomProcess === 'progress') {
+            if (this.animating) {
                 return;
-            } else {
-                this.zoomArea.zoomProcess = 'progress';
-                this.zoomArea.zoomOutProcess = 'progress';
-                this.zoomArea.zoomInProcess = null;
             }
 
             var currScale = this.scale;
@@ -5341,6 +5344,9 @@ amp.stats.event = function(dom,type,event,value){
         this.zoomArea = zoom.zoomArea;
         this.cb = cb;
         this.element = zoom.element;
+        if(!this.zoomArea.newSize){
+            this.zoomArea.newSize = {'x':this.zoomArea.$source.width(), 'y':this.zoomArea.$source.height()};
+        }
         this.currentPixPos = this.zoomArea.getPixPos();
         $(document).on('mousemove touchmove', $.proxy(this.move,this));
         $(document).on('mouseup touchend', $.proxy(this.end,this));
@@ -5468,7 +5474,6 @@ amp.stats.event = function(dom,type,event,value){
 
         this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
             this.animating = false;
-            this.zoomProcess = null;
             if (cb) {
                 cb();
             }
@@ -5478,46 +5483,20 @@ amp.stats.event = function(dom,type,event,value){
 
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
-        var intervalNum = 0;
-        if(this.preloadedImgInterval){
-            clearInterval(this.preloadedImgInterval);
-        }
-
-        if(!scaleIncreased){
+        if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
             self.$preloader.addClass('amp-hidden');
             return false;
         }
-
-        this.preloadedImgInterval = setInterval(function(){
-            intervalNum +=1;
-
-            if(intervalNum >= 30){
-                //Clear interval is number of iterations >= 30,
-                //which equals to 6 seconds (30 * 200)
-                clearInterval(self.preloadedImgInterval);
-                return false;
-            }
-
-            if(!self._preloaderImgLoaded == true){
+        var attributes =  self.$zoomed.prop('attributes');
+        $.each(attributes, function() {
+            if(this.name == 'src' || this.name == 'class'){
                 return;
             }
+            self.$preloader.attr(this.name, this.value);
+        });
 
-            var attributes =  self.$zoomed.prop('attributes');
-            $.each(attributes, function() {
-                if(this.name == 'src' || this.name == 'class'){
-                    return;
-                }
-                self.$preloader.attr(this.name, this.value);
-            });
+        self.setImage();
 
-            if (!self.zoomOutProcess === 'progress') {
-                self.$preloader.removeClass('amp-hidden');
-            }
-
-            self.setImage();
-
-            clearInterval(self.preloadedImgInterval);
-        }, 200);
     };
 
     zoomArea.prototype.setScale = function(scale,cb){
@@ -5525,6 +5504,13 @@ amp.stats.event = function(dom,type,event,value){
         var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
+        }
+
+        if(!scaleIncreased){
+            this.allowClone = false;
+        }
+        else{
+            this.allowClone = true;
         }
 
         if((scale < this.scale) && scale == 1) {
@@ -5568,6 +5554,7 @@ amp.stats.event = function(dom,type,event,value){
     };
 
     zoomArea.prototype.invalidateImageURL = function(size) {
+        var self = this;
         var templateQueryParam = '';
 
         if (this.transforms && this.transforms.length) {
@@ -5579,10 +5566,17 @@ amp.stats.event = function(dom,type,event,value){
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        this._preloaderImgLoaded = false;
-        this.$preloader.attr('src',src);
+        self._preloaderImgLoaded = false;
+        var preloaderImage = new Image();
+        $(preloaderImage).on('load',function(){
+            self._preloaderImgLoaded = true;
+            self.$preloader.attr('src',src);
+        })
+        preloaderImage.src = src;
     };
     zoomArea.prototype.setImage = function() {
+        var self = this;
+        self.$preloader.removeClass('amp-hidden');
         this.$zoomed.attr('src',this.$preloader.attr('src'));
     };
 
