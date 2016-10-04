@@ -523,7 +523,7 @@
             //Assign preloader loaded Boolean to true
             self._preloaderImgLoaded = true;
             if (self.allowClone && !self.animating) {
-                self.setImage();
+                self.updateImageSrc();
             }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
