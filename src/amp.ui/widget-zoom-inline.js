@@ -522,6 +522,9 @@
         this.$preloader.on('load', function(){
             //Assign preloader loaded Boolean to true
             self._preloaderImgLoaded = true;
+            if (self.allowClone && !self.animating) {
+                self.setImage();
+            }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
         this.$container.append(this.$zoomed);
@@ -680,12 +683,7 @@
             src='';
         }
         self._preloaderImgLoaded = false;
-        var preloaderImage = new Image();
-        $(preloaderImage).on('load',function(){
-            self._preloaderImgLoaded = true;
-            self.$preloader.attr('src',src);
-        })
-        preloaderImage.src = src;
+        self.$preloader.attr('src',src);
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
