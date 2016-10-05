@@ -131,7 +131,7 @@
                             var self = this;
                             var img = new Image();
                             img.src = this.element.attr('src');
-                            var $loading = $('<div class="amp-loading"></div>')
+                            var $loading = $('<div class="amp-loading"></div>');
                             this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
 
@@ -317,9 +317,6 @@
                 }
             }
 
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -338,9 +335,6 @@
 
             this.scale = 1;
 
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -534,8 +528,8 @@
     zoomArea.prototype.createContainer = function() {
         var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = $('<img class="amp-zoomed-clone amp-hidden">');
-        this.$preloader.on('load', function(){
+        this.$preloader = new Image();
+        $(this.$preloader).on('load', function(){
             //Assign preloader loaded Boolean to true
             self._preloaderImgLoaded = true;
             if (self.allowClone && !self.animating) {
@@ -543,7 +537,6 @@
             }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
-        this.$container.append(this.$preloader);
         this.$container.append(this.$zoomed);
         this.$area.append(this.$container);
         this.$container.css({
@@ -563,7 +556,6 @@
         if(this.animating)
             return;
 
-        this.$preloader.addClass('amp-hidden');
         if(this.$zoomed.width()<=this.$area.width()) {
             x = 0.5;
         }
@@ -621,18 +613,10 @@
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
-            self.$preloader.addClass('amp-hidden');
             console.log('ups');
             return false;
         }
         var attributes =  self.$zoomed.prop('attributes');
-        $.each(attributes, function() {
-            if(this.name == 'src' || this.name == 'class'){
-                return;
-            }
-            self.$preloader.attr(this.name, this.value);
-        });
-
         self.setImage();
 
     };
@@ -705,13 +689,17 @@
             src='';
         }
         self._preloaderImgLoaded = false;
-        self.$preloader.attr('src',src);
+        self.$preloader.setAttribute('src',src);
+
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
-        self.$preloader.removeClass('amp-hidden');
-        this.$zoomed.attr('src',this.$preloader.attr('src'));
-        self.$preloader.addClass('amp-hidden');
+        var cloneZoomed = self.$zoomed.clone();
+        self.$container.append(cloneZoomed);
+        self.$zoomed.attr('src', self.$preloader.src);
+        setTimeout(function(){
+            cloneZoomed.remove();
+        },100);
     };
 
 
