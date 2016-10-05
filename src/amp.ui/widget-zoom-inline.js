@@ -9,6 +9,7 @@
             scaleStep: 0.5,
             // toggle the zoom or not, needed when we are using the same mouse event to zoom in and out
             scaleSteps: false,
+            scaleProcess: false,
             events:{
                 zoomIn:'mouseup touchstart',
                 zoomOut:'mouseup touchend',
@@ -228,21 +229,27 @@
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale).then(function(){console.log('------>',self.zoomArea);});
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
                 if (!self.isMoveOn) {
                     self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
                     self.isMoveOn = true;
                 }
-                if(!this.options.scaleSteps || this.scale == this.options.scaleMax) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                    self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+                if (self.options.scaleProcess) {
+                    if(!this.options.scaleSteps || this.scale == this.options.scaleMax) {
+                        self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+                    } else {
+                        if (!self.isZoomIn) {
+                            self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(this.zoomIn,this));
+                            self.isZoomIn = true;
+                        }
+                    }
                 } else {
-                    if (!self.isZoomIn) {
-                        self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(this.zoomIn,this));
-                        self.isZoomIn = true;
+                    if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                        self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
                     }
                 }
+
             },this),500);
         },
 
@@ -613,7 +620,6 @@
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
-            console.log('ups');
             return false;
         }
         var attributes =  self.$zoomed.prop('attributes');
