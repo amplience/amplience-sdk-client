@@ -204,7 +204,7 @@
                 }
             }
 
-            if (this.animating) {
+            if (this.zoomArea && this.zoomArea.animating) {
                 return;
             }
 
@@ -277,7 +277,7 @@
                 return false;
             }
 
-            if (this.animating) {
+            if (this.zoomArea && this.zoomArea.animating) {
                 return;
             }
 
@@ -523,12 +523,12 @@
             //Assign preloader loaded Boolean to true
             self._preloaderImgLoaded = true;
             if (self.allowClone && !self.animating) {
-                self.updateImageSrc();
+                self.updateImageSrc(true);
             }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
-        this.$container.append(this.$zoomed);
         this.$container.append(this.$preloader);
+        this.$container.append(this.$zoomed);
         this.$area.append(this.$container);
         this.$container.css({
             position:'absolute',
@@ -587,14 +587,19 @@
         if(size.y <= this.$area.height()) {
             pos.y = this.getPixPos(0.5,0.5).y;
         }
-
-        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        setTimeout($.proxy(function(){
             this.animating = false;
             if (cb) {
                 cb();
             }
-        },this));
-
+        },this),500);
     };
 
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
@@ -685,10 +690,12 @@
         self._preloaderImgLoaded = false;
         self.$preloader.attr('src',src);
     };
+
     zoomArea.prototype.setImage = function() {
         var self = this;
         self.$preloader.removeClass('amp-hidden');
         this.$zoomed.attr('src',this.$preloader.attr('src'));
+        self.$preloader.addClass('amp-hidden');
     };
 
 
