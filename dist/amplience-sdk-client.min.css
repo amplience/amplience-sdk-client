@@ -181,7 +181,7 @@
     width: 0;
     background: #a9a9a9; }
 
-.amp-zoomed, .amp-zoomed-clone {
+.amp-zoomed {
   display: block;
   position: absolute !important;
   max-width: none !important;
@@ -196,12 +196,6 @@
   user-select: none;
   max-height: none !important;
   opacity: 1; }
-
-.amp-zoomed-clone {
-  z-index: 1 !important; }
-
-.amp-zoomed-clone.amp-hidden {
-  opacity: 0; }
 
 .video-js.vjs-ended .vjs-poster {
   display: block; }

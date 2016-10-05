@@ -2942,7 +2942,7 @@
                             var self = this;
                             var img = new Image();
                             img.src = this.element.attr('src');
-                            var $loading = $('<div class="amp-loading"></div>')
+                            var $loading = $('<div class="amp-loading"></div>');
                             this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
 
@@ -3001,6 +3001,7 @@
         },
 
         zoomIn: function (e) {
+            var self = this;
             if(!this.options.scaleSteps){
                 if(this.scale != 1){
                     return;
@@ -3015,30 +3016,45 @@
                 }
             }
 
-            if (this.animating) {
+            if (self.zoomArea && self.zoomArea.animating) {
                 return;
             }
 
+            if(this.scale == this.options.scaleMax) {
+                if (this.options.events.zoomIn) {
+                    self.zoomArea.$container.off(this.options.events.zoomIn,this.zoomIn);
+                    self.isZoomIn = false;
+                }
+            }
+
             var currScale = this.scale;
+
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
                 this.scale = Math.min(this.scale,this.options.scaleMax);
             } else {
                 this.scale = this.options.scaleMax;
             }
-
             if(currScale == this.scale) {
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale);
+            this.setScale(this.scale).then(function(){console.log('------>',self.zoomArea);});
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
-                if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                    $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+                if (!self.isMoveOn) {
+                    self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
+                    self.isMoveOn = true;
                 }
-            },this),100);
+                if(!this.options.scaleSteps || this.scale == this.options.scaleMax) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                    self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+                } else {
+                    if (!self.isZoomIn) {
+                        self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(this.zoomIn,this));
+                        self.isZoomIn = true;
+                    }
+                }
+            },this),500);
         },
 
         zoomInClick: function (e) {
@@ -3057,13 +3073,13 @@
             this.setScale(this.scale);
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
+                self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
             },this),1);
         },
 
         setScale : function(s) {
             this.scale = s;
-            this._setupZoomArea().then($.proxy(function(area){
+            return this._setupZoomArea().then($.proxy(function(area){
                 if(!area){
                     return;
                 }
@@ -3082,13 +3098,12 @@
             this.zoomArea.setPosition(pos.x,pos.y)
         },
         zoomOut:function(e) {
-
             this.zoomArea.allowClone = false;
             if(this._touchmove) {
                 return false;
             }
 
-            if (this.animating) {
+            if (this.zoomArea && this.zoomArea.animating) {
                 return;
             }
 
@@ -3104,17 +3119,15 @@
             }
             if(this.scale == 1) {
                 if (this.options.events.move) {
-                    $(document).off(this.options.events.move, this._setPos);
+                    this.zoomArea.$container.off(this.options.events.move, this._setPos);
+                    this.isMoveOn = false;
                 }
 
                 if (this.options.events.zoomOut) {
-                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                    this.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
 
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -3124,18 +3137,15 @@
                 return;
             }
             if (this.options.events.move) {
-                $(document).off(this.options.events.move, this._setPos);
+                self.zoomArea.$container.off(this.options.events.move, this._setPos);
             }
 
             if (this.options.events.zoomOut) {
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                self.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
             }
 
             this.scale = 1;
 
-            if(this.zoomArea.$preloader){
-                this.zoomArea.$preloader.addClass('amp-hidden');
-            }
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -3329,17 +3339,16 @@
     zoomArea.prototype.createContainer = function() {
         var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = $('<img class="amp-zoomed-clone amp-hidden">');
-        this.$preloader.on('load', function(){
+        this.$preloader = new Image();
+        $(this.$preloader).on('load', function(){
             //Assign preloader loaded Boolean to true
             self._preloaderImgLoaded = true;
             if (self.allowClone && !self.animating) {
-                self.updateImageSrc();
+                self.updateImageSrc(true);
             }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
         this.$container.append(this.$zoomed);
-        this.$container.append(this.$preloader);
         this.$area.append(this.$container);
         this.$container.css({
             position:'absolute',
@@ -3358,7 +3367,6 @@
         if(this.animating)
             return;
 
-        this.$preloader.addClass('amp-hidden');
         if(this.$zoomed.width()<=this.$area.width()) {
             x = 0.5;
         }
@@ -3398,30 +3406,28 @@
         if(size.y <= this.$area.height()) {
             pos.y = this.getPixPos(0.5,0.5).y;
         }
-
-        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        setTimeout($.proxy(function(){
             this.animating = false;
             if (cb) {
                 cb();
             }
-        },this));
-
+        },this),500);
     };
 
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
-            self.$preloader.addClass('amp-hidden');
+            console.log('ups');
             return false;
         }
         var attributes =  self.$zoomed.prop('attributes');
-        $.each(attributes, function() {
-            if(this.name == 'src' || this.name == 'class'){
-                return;
-            }
-            self.$preloader.attr(this.name, this.value);
-        });
-
         self.setImage();
 
     };
@@ -3494,12 +3500,17 @@
             src='';
         }
         self._preloaderImgLoaded = false;
-        self.$preloader.attr('src',src);
+        self.$preloader.setAttribute('src',src);
+
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
-        self.$preloader.removeClass('amp-hidden');
-        this.$zoomed.attr('src',this.$preloader.attr('src'));
+        var cloneZoomed = self.$zoomed.clone();
+        self.$container.append(cloneZoomed);
+        self.$zoomed.attr('src', self.$preloader.src);
+        setTimeout(function(){
+            cloneZoomed.remove();
+        },100);
     };
 
 
