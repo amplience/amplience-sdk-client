@@ -3003,6 +3003,15 @@
 
         zoomIn: function (e) {
             var self = this;
+            if (!self.zoomArea) {
+                self._setupZoomArea().then(function(area){
+                    if(!area){
+                        return;
+                    }
+                    self.zoomIn(e);
+                });
+                return false;
+            }
             if(!this.options.scaleSteps){
                 if(this.scale != 1){
                     return;
@@ -3040,28 +3049,31 @@
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
-            setTimeout($.proxy(function(){
-                if (!self.isMoveOn) {
-                    self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
-                    self.isMoveOn = true;
-                }
-                if (self.options.scaleProcess) {
-                    if(!this.options.scaleSteps || this.scale == this.options.scaleMax) {
-                        self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+            this.setScale(this.scale).then(function(){
+                // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
+                setTimeout($.proxy(function(){
+                    if (!self.isMoveOn) {
+                        self.zoomArea.$container.on(this.options.events.move, $.proxy(self._setPos,self));
+                        self.isMoveOn = true;
+                    }
+                    if (self.options.scaleProcess) {
+                        if(!self.options.scaleSteps || self.scale == self.options.scaleMax) {
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
+                        } else {
+                            if (!self.isZoomIn) {
+                                self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(self.zoomIn,self));
+                                self.isZoomIn = true;
+                            }
+                        }
                     } else {
-                        if (!self.isZoomIn) {
-                            self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(this.zoomIn,this));
-                            self.isZoomIn = true;
+                        if(!self.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
                         }
                     }
-                } else {
-                    if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                        self.zoomArea.$container.on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
-                    }
-                }
 
-            },this),500);
+                },self),500);
+            });
+
         },
 
         zoomInClick: function (e) {
