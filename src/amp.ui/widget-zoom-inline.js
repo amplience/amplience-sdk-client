@@ -529,7 +529,7 @@
     var zoomArea = function($source,$area,originalSize,transforms) {
         this.animating = false;
         this.transforms = transforms;
-        this.initialSrc = $source.attr('src');
+        this.initialSrc = $source[0].src;
         this.scale = 1;
         this.$area = $area;
         this.$source = $source;
@@ -556,6 +556,8 @@
             }
         });
         this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
+        this.$zoomedClone = $('<img class="amp-zoomed-clone" style="z-index:2;" src=""/>');
+        this.$container.append(this.$zoomedClone);
         this.$container.append(this.$zoomed);
         this.$area.append(this.$container);
         this.$container.css({
@@ -588,6 +590,8 @@
         y = Math.min(1,Math.max(0,y));
         this.$zoomed.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
         this.$zoomed.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
+        this.$zoomedClone.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
+        this.$zoomedClone.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
     };
 
     zoomArea.prototype.getPixPos = function(x,y) {
@@ -621,6 +625,13 @@
             'top':pos.y+'px',
             'transition': 'all 0.5s ease'
         })
+        this.$zoomedClone.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
         setTimeout($.proxy(function(){
             this.animating = false;
             if (cb) {
@@ -634,7 +645,6 @@
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
             return false;
         }
-        var attributes =  self.$zoomed.prop('attributes');
         self.setImage();
 
     };
@@ -653,16 +663,20 @@
             this.allowClone = true;
         }
 
+        self._preloaderImgLoaded = false;
+
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
             this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
-            this.$zoomed.attr('src',this.$source.attr('src'));
+            this.$zoomed.attr('src',this.$source[0].src);
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
                 this.$zoomed.height(this.$source.height());
+                this.$zoomedClone.width(this.$source.width());
+                this.$zoomedClone.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
             this.show();
@@ -706,18 +720,14 @@
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        self._preloaderImgLoaded = false;
-        self.$preloader.setAttribute('src',src);
+        self.$preloader.setAttribute('src', src);
 
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
-        var cloneZoomed = self.$zoomed.clone();
-        self.$container.append(cloneZoomed);
+        var previousSrc = self.$zoomed[0].src;
         self.$zoomed.attr('src', self.$preloader.src);
-        setTimeout(function(){
-            cloneZoomed.remove();
-        },100);
+        self.$zoomedClone.attr('src', previousSrc);
     };
 
 

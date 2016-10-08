@@ -204,7 +204,7 @@
     background: #a9a9a9;
   }
 }
-.amp-zoomed {
+.amp-zoomed, .amp-zoomed-clone {
   display:block;
   position:absolute!important;
   max-width:none!important;
@@ -218,7 +218,6 @@
   -ms-user-select: none;
   user-select:none;
   max-height:none!important;
-  opacity: 1;
 }
 .video-js.vjs-ended {
   .vjs-poster {
