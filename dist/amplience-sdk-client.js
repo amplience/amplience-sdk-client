@@ -5129,7 +5129,7 @@ amp.stats.event = function(dom,type,event,value){
             this.setScale(this.scale).then(function(){
                 // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
                 setTimeout($.proxy(function(){
-                    if (!self.isMoveOn) {
+                    if (!self.isMoveOn  && self.options.events.move) {
                         self.zoomArea.$container.on(this.options.events.move, $.proxy(self._setPos,self));
                         self.isMoveOn = true;
                     }
