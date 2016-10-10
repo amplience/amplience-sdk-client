@@ -196,12 +196,6 @@
   user-select: none;
   max-height: none !important; }
 
-.amp-zoomed-clone {
-  z-index: 1 !important; }
-
-.amp-zoomed-clone.amp-hidden {
-  display: none; }
-
 .video-js.vjs-ended .vjs-poster {
   display: block; }
 
