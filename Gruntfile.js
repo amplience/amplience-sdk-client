@@ -117,7 +117,7 @@
                     files: [
                         'bower_components/jquery/jquery.js',
                         'bower_components/jquery-ui/ui/jquery.ui.widget.js',
-                        'bower_components/video.js/dist/video-js/video.dev.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
                         'test/amp/SDK.min.js',
                         'test/amp.ui/components.min.js',
@@ -148,7 +148,7 @@
                     files: [
                         'bower_components/jquery/jquery.js',
                         'bower_components/jquery-ui/ui/jquery.ui.widget.js',
-                        'bower_components/video.js/dist/video-js/video.dev.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
                         'test/amp/SDK.min.js',
                         'test/amp.ui/components.min.js',
@@ -171,20 +171,28 @@
                     singleRun: true,
                     autoWatch: false
                 }
-            },            
+            },
             teamcity: {
                 options: {
                     frameworks: ["jasmine"],
 
                     files: [
+                        'bower_components/jquery/jquery.js',
+                        'bower_components/jquery-ui/ui/jquery.ui.widget.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
-                        'test/amp/SDK.js',
-                        'test/amp.ui/components.js',
+                        'test/amp/SDK.min.js',
+                        'test/amp.ui/components.min.js',
                         'test/**/*.js',
-                        'test/components/*.js',
                         {
                             pattern: 'test/fixtures/**/*.json',
                             watched: true,
+                            included: false,
+                            served:true
+                        },
+                        {
+                            pattern: 'dist/**/*.css',
+                            watched: false,
                             included: false,
                             served:true
                         }
@@ -243,5 +251,5 @@
     grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','sass', 'uglify','concat:together','replace']);
 
     // Default task(s).
-    grunt.registerTask('tests', ['default','karma']);
+    grunt.registerTask('tests', ['default','karma:unit', 'karma:test']);
 };
