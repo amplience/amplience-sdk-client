@@ -51,6 +51,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -68,9 +69,19 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
-            children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            var currentChild =  children.eq(this._index-1);
+            var currentChildClone = currentChild.clone();
+            currentChildClone.addClass('amp-frame-clone');
+            if (this.isWebkit){
+                children.css({'display':'none'});
+                currentChild.css('display','block');
+            } else {
+                children.css({'z-index':-1});
+                currentChild.css('z-index', 1);
+            }
+
+            this.element.append(currentChildClone);
+            currentChild.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
                     return _self._calcSize();
@@ -327,7 +338,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -350,7 +361,6 @@
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -358,10 +368,6 @@
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
@@ -427,25 +433,51 @@
                     return;
                 var speed = distance/time,
                     travelSpeed = speed,
-                    fiction = this.options.friction,
+                    friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
                     travelTime = 0,
                     timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
-                if(Math.abs(totalDistance)<this.options.minDistance)
+                if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
-                // every 10ms the speed reduces by the friction percentage
-                while(Math.abs(travelSpeed)>0.1) {
-                    travelSpeed*=fiction;
-                    travelDistance += travelSpeed*timeInterval;
-                    travelTime+=timeInterval;
-                    setTimeout((function(td){
-                        return function() {
-                            self._moveSpin(td+totalDistance,e,sindex);
-                        }
-                    })(travelDistance),travelTime)
-                }
+
+                var lastAnimationTime = null;
+
+                var animateMomentum = function(timeStamp) {
+                    var timeElapsed;
+
+                    if (lastAnimationTime) {
+                        timeElapsed = timeStamp - lastAnimationTime;
+                    } else {
+                        // this is the first iteration, assume 15ms
+                        timeElapsed = 15;
+                    }
+
+                    lastAnimationTime = timeStamp;
+
+                    // apply a unit of friction for every elapsed 10ms
+                    var frictionIteration = timeElapsed / 10;
+                    while (frictionIteration > 0) {
+                        // allow for a partial application of friction, ie. if we had to apply 3.5 friction iterations
+                        // for the last iteration (0.5), we only want to apply 50% of the friction speed delta
+                        travelSpeed -= (travelSpeed - travelSpeed * friction) * Math.min(frictionIteration, 1);
+                        frictionIteration -= 1;
+                    }
+
+                    travelDistance += travelSpeed * timeElapsed;
+                    travelTime += timeElapsed;
+
+                    self._moveSpin(travelDistance + totalDistance, e, sindex);
+
+                    if (Math.abs(travelSpeed) > 0.1) {
+                        window.requestAnimationFrame(animateMomentum);
+                    }
+                };
+
+                // trigger the initial momentum animation
+                window.requestAnimationFrame(animateMomentum);
+
                 return;
             }
         },
@@ -537,11 +569,18 @@
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('display','block');
+            if (this.isWebkit){
+                nextItem.css('display', 'block');
+                currItem.css('display', 'none');
+            }else{
+                nextItem.css('zIndex', 1);
+                currItem.css('zIndex', -1);
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display','none');
             this._setIndex(_index);
 
+            // set the index, but ignore visibility toggling as this is already done
+            this._setIndex(_index, true);
         },
         _track: function(event,value) {
             this._trigger( event, null, value );

@@ -7,25 +7,26 @@
     "grunt-replace": "~0.8.0"
   },
   "devDependencies": {
-    "grunt": "~0.4.1",
     "bower": "latest",
-    "karma": "latest",
-    "jasmine-jquery": "latest",
-    "grunt-karma": "latest",
-    "grunt-includes": "~0.3.6",
-    "grunt-contrib-jshint": "~0.6.3",
-    "grunt-contrib-uglify": "~0.2.2",
+    "grunt": "~0.4.1",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-copy": "latest",
-    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-jshint": "~0.6.3",
     "grunt-contrib-less": "~0.8.2",
+    "grunt-contrib-sass": "^1.0.0",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-includes": "~0.3.6",
+    "grunt-karma": "latest",
     "grunt-strip-code": "latest",
-    "karma-jasmine": "~0.1.5",
+    "jasmine-jquery": "latest",
+    "karma": "latest",
     "karma-chrome-launcher": "~0.1.2",
     "karma-coverage": "~0.1.4",
-    "karma-teamcity-reporter": "~0.1.1",
     "karma-ie-launcher": "~0.1.1",
-    "karma-phantomjs-launcher": "~0.1"
+    "karma-jasmine": "~0.1.5",
+    "karma-phantomjs-launcher": "~0.1",
+    "karma-teamcity-reporter": "~0.1.1"
   },
   "scripts": {
     "test": "grunt karma:test"

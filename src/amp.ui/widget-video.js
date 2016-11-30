@@ -5,7 +5,7 @@
             autoplay: false,
             loop: false,
             muted: false,
-            skin: 'amp-video-skin',
+            skin: '',
             responsive: true,
             preload: 'auto',
             pauseOnHide: true,
@@ -39,7 +39,7 @@
             this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + this.options.skin);
+            video.addClass('video-js' + ' ' + this.options.skin + ' ' + 'vjs-big-play-centered');
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -66,6 +66,11 @@
             }
 
             this._player.ready(function () {
+
+                if(this.options_.muted){
+                    this.volume(0);
+                }
+
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {
@@ -141,10 +146,12 @@
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
+                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
+                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
@@ -154,8 +161,9 @@
             if(visible == this._visible)
                 return;
 
+            this._track('visible',{'visible':visible});
+
             if (visible) {
-                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {
@@ -231,7 +239,6 @@
         state: function(state){
             if (state === void 0)
                 return this._currentState;
-
             this._currentState = state;
             this._trigger("stateChange", null, {state:state})
         },
@@ -243,6 +250,7 @@
         },
         _destroy: function() {
             this._player.dispose();
+            this._player = null;
             this.element[0].outerHTML = this._savedHTML;
         },
         _sanitisePlugins: function(plugins){

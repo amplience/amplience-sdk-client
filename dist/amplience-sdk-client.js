@@ -16,6 +16,32 @@ var amp = amp || {};
  * @class __Global__
  */
 
+// requestAnimationFrame Polyfill (Paul Irish / Erik Möller)
+(function() {
+    var lastTime = 0;
+    var vendors = ['webkit', 'moz'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame =
+            window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+                timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 // JSON
 var JSON = JSON || {};
 /**
@@ -1052,9 +1078,10 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
+ * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
+amp.get = function (assets, success, error, videoSort, timeout, transformData) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
         return function (name,data) {
@@ -1080,8 +1107,11 @@ amp.get = function (assets, success, error, videoSort) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                });
-            } else { 
+                },
+                    false,
+                    timeout,
+                    transformData || false);
+            } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
                     if(videoSort) {
@@ -1105,10 +1135,18 @@ amp.get = function (assets, success, error, videoSort) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success)
+        if(objLength(dataWin)>0 && success) {
+            if(transformData && typeof transformData === 'function'){
+                dataWin = transformData(dataWin);
+            }
             success(dataWin);
-        if(objLength(dataFail)>0 && error)
+        }
+        if(objLength(dataFail)>0 && error) {
+            if(transformData && typeof transformData === 'function'){
+                dataFail = transformData(dataFail);
+            }
             error(dataFail);
+        }
     };
 
     var isValid = function(asset){
@@ -1124,14 +1162,14 @@ amp.get = function (assets, success, error, videoSort) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
         }
     }
 };
@@ -1215,8 +1253,8 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform){
-
+var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
@@ -1240,7 +1278,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, 10000);
+    }, timeout);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
@@ -1256,13 +1294,14 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail) {
+    amp.content = function (assets, win, fail, timeout) {
+        var timeout = timeout || 60000;
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets,function(wins,fails){
+        payloader(assets, timeout, function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -1294,7 +1333,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets,finished) {
+    var payloader = function(assets, timeout, finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -1319,7 +1358,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
         }
     };
 
@@ -2426,11 +2465,15 @@ amp.stats.event = function(dom,type,event,value){
             }
             this._setIndex(_index);
         },
-        _setIndex:function(index) {
-            var elmWas = this._children.eq(this._index-1);
-            var elm = this._children.eq(index-1);
-            this.callChildMethod(elm,'visible',true);
-            this.callChildMethod(elmWas,'visible',false);
+        _setIndex:function(index, noVisibilityToggle) {
+            if (!noVisibilityToggle) {
+                var elmWas = this._children.eq(this._index-1);
+                var elm = this._children.eq(index-1);
+
+                this.callChildMethod(elm,'visible',true);
+                this.callChildMethod(elmWas,'visible',false);
+            }
+
             this._index = index;
             this._track("change",{'index':index,'canPrev':this.canPrev(),'canNext':this.canNext()});
         },
@@ -2477,6 +2520,7 @@ amp.stats.event = function(dom,type,event,value){
             start:1,
             preferForward: false,
             no3D: false,
+            thumbWidthExceed:0,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -2507,6 +2551,7 @@ amp.stats.event = function(dom,type,event,value){
             this._visible = 0;
             this._asyncMethods = [];
             this._canNext = true;
+            this._movedCounter = 0;
             var self = this;
 
             this.options.delay = Math.max(this.options.delay,this.options.animDuration+1);
@@ -2525,7 +2570,7 @@ amp.stats.event = function(dom,type,event,value){
             this._children.addClass('amp-slide');
             this._calcSize();
             this._chooseLayoutManager();
-   
+
             this._children.eq(this._index-1).addClass(this.options.states.selected);
 
             if(this.options.onActivate.goTo || this.options.onActivate.select ) {
@@ -2537,8 +2582,11 @@ amp.stats.event = function(dom,type,event,value){
                         },1)
 
                     };
-                    var move = function() {
+                    var move = function(evt) {
+                        self._movedCounter +=1;
+                        if(self._movedCounter >= 7){
                         self.moved = true;
+                        }
                     };
                     var activate = (function(_i){
                         var me = self;
@@ -2781,8 +2829,8 @@ amp.stats.event = function(dom,type,event,value){
         },
         _preloadNext:function(){
             if(this.options.preloadNext) {
-
-                var index = this._loopIndex(true,this._index,1);
+                var num = this._visible + (this._index - 1);
+                var index = this._loopIndex(true,num,1);
                 var nextNextItem = this._children.eq(index-1);
                 this.callChildMethod(nextNextItem,'preload',true);
             }
@@ -2864,13 +2912,20 @@ amp.stats.event = function(dom,type,event,value){
         _measureElement : function (index) {
             var size,
                 horz = this.options.dir == 'horz',
-                elm = this._children.eq(index);
+                elm = this._children.eq(index),
+                clientHeight = elm[0].getBoundingClientRect().height;
 
             elm.css('display','block');
             if(horz) {
                 size = elm.outerWidth(true);
             } else {
                 size = elm.outerHeight(true);
+                if(clientHeight && (size - clientHeight <= 1)){
+                    size = clientHeight;
+                }
+                if(!clientHeight){
+                    size = elm.outerHeight(true) - 1;
+                }
             }
             elm.css('display','');
             return size;
@@ -2935,7 +2990,7 @@ amp.stats.event = function(dom,type,event,value){
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index<this.count);
+            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
         },
         redraw:function(){
             if(this._animating) {
@@ -2979,6 +3034,9 @@ amp.stats.event = function(dom,type,event,value){
                 if(widget.canTouch && widget.options.gesture.enabled) {
                     widget._children.on('touchstart', $.proxy(this.start,this));
                 }
+                else{
+                    widget._children.on('mousedown', $.proxy(this.start,this));
+                }
             };
 
             m.start = function(e){
@@ -3005,6 +3063,7 @@ amp.stats.event = function(dom,type,event,value){
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
+                $(window).on('mouseup',$.proxy(this.stop,this));
                 return true;
             };
 
@@ -3043,7 +3102,6 @@ amp.stats.event = function(dom,type,event,value){
 
                 if(widget.options.dir == this.moveDir){
                     return false;
-                    e.preventDefault();
                 }
             };
 
@@ -3086,9 +3144,11 @@ amp.stats.event = function(dom,type,event,value){
             };
 
             m.stop = function(e){
+                widget._movedCounter = 0;
                 $(window).off('touchmove',$.proxy(this.move,this));
                 $(window).off('touchcancel',$.proxy(this.stop,this));
                 $(window).off('touchend',$.proxy(this.stop,this));
+                $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
                     var nearest = this.findNearest();
@@ -3188,6 +3248,7 @@ amp.stats.event = function(dom,type,event,value){
                     this.focusNoLoop(_index,false);
                 } else {
                     this.arrange(_index);
+                    this.focusLoop(_index, false);
                 }
             };
 
@@ -3217,13 +3278,15 @@ amp.stats.event = function(dom,type,event,value){
                     var pos = this.metrics[i].pos;
                     var elm = widget._children.eq(i);
                     var elmSize = this.metrics[i].size;
-                    if(pos>=target && (pos+elmSize-target)<=widget._elmSize()){
-                        widget._setState(elm,'visible');
+                    var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
+
+                    if (pos >= target && (pos + elmSize - widget.options.thumbWidthExceed - bounds - target) <= widget._elmSize()) {
+                        widget._setState(elm, 'visible');
                         visible++;
-                    } else if ((pos+elmSize>target && (pos+elmSize-target)<=widget._elmSize()) || (pos>=target&&(pos-target)<widget._elmSize())) {
-                        widget._setState(elm,'partial');
+                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) < widget._elmSize()) || (pos > target && (pos - target) < widget._elmSize())) {
+                        widget._setState(elm, 'partial');
                     } else {
-                        widget._setState(elm,'invisible');
+                        widget._setState(elm, 'invisible');
                     }
                 }
                 widget._visible = visible;
@@ -3235,6 +3298,9 @@ amp.stats.event = function(dom,type,event,value){
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
+
+                this.setVisibleStates(_index,target);
+
                 widget._moveElements(target,function(){
                     widget._container[0].style[widget._canCSS3.transform] = '';
                     widget.options.dir === 'horz' ? widget._container[0].style.left = '' : widget._container[0].style.top = '';
@@ -3257,6 +3323,14 @@ amp.stats.event = function(dom,type,event,value){
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
+                    var borderW = elm.css('box-sizing') == 'border-box' ? elm.css('borderBottomWidth')
+                    + elm.css('borderTopWidth') : 0;
+                    var borderH = borderW ? elm.css('borderLeftWidth') + elm.css('borderRightWidth') : 0;
+                    clone.css({
+                        width: elm.width() + borderW,
+                        height: elm.height() + borderH
+                    });
+
                 }
             };
 
@@ -3579,9 +3653,41 @@ amp.stats.event = function(dom,type,event,value){
 
         },
 
+        dimensionsParams: function (imgSrc) {
+            //Dynamically assign width and/or height attributes in src attribute of an image
+            var self = this;
+            var dimensionsObj = self.element.data('amp-dimensions');
+            var src = imgSrc;
+            if (!dimensionsObj) {
+                return src;
+            }
+
+            var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
+            var paramsString = '';
+
+            $.each(dimensionsObj[0], function (key, obj) {
+                var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
+                var duplicate = src.match(regExp);
+
+                if (duplicate && duplicate.length > 0) {
+                    $.each(duplicate, function (i, v) {
+                        src = src.replace(v, '');
+                    });
+                }
+
+                var $parent = obj.domName === 'window' ? $(window) : self.element.closest(obj.domName);
+                paramsString += paramPrefix + key + '=' + parseFloat($parent[obj.domProp](), 10);
+                paramPrefix = '&';
+
+            });
+
+            src += paramsString;
+            return src;
+        },
+
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-
+            src = this.dimensionsParams(src);
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
@@ -4305,7 +4411,6 @@ amp.stats.event = function(dom,type,event,value){
                 }
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
 
             if (visible) {
                 if(this.options.preload.image == 'visible'){
@@ -4320,6 +4425,8 @@ amp.stats.event = function(dom,type,event,value){
             } else {
                 this.zoom(false);
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         preload:function() {
@@ -4789,6 +4896,7 @@ amp.stats.event = function(dom,type,event,value){
             scaleStep: 0.5,
             // toggle the zoom or not, needed when we are using the same mouse event to zoom in and out
             scaleSteps: false,
+            scaleProcess: false,
             events:{
                 zoomIn:'mouseup touchstart',
                 zoomOut:'mouseup touchend',
@@ -4832,6 +4940,7 @@ amp.stats.event = function(dom,type,event,value){
                 });
 
                 this.element.parent().on('mousedown touchstart',$.proxy(function(e){
+                    this._touchmove = false;
                     // are we panning? if so don't let mousedown trigger anything else
                     if(this.scale>1) {
                         e.stopPropagation();
@@ -4852,6 +4961,7 @@ amp.stats.event = function(dom,type,event,value){
             }
             if(this.options.pinch) {
                 this.element.parent().on('touchstart',$.proxy(function(e){
+                    this_touchmove = false;
                     if(this.pincher) {
                         this.pincher.remove();
                         delete this.pincher;
@@ -4883,7 +4993,7 @@ amp.stats.event = function(dom,type,event,value){
             if (this._visible == visible) {
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
+
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
@@ -4891,10 +5001,13 @@ amp.stats.event = function(dom,type,event,value){
             } else {
                 this.zoomOutFull();
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
+            this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -4903,8 +5016,17 @@ amp.stats.event = function(dom,type,event,value){
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
+                            var self = this;
+                            var img = new Image();
+                            img.src = this.element.attr('src');
+                            var $loading = $('<div class="amp-loading"></div>');
+                            this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
-                            resolve(this.zoomArea);
+
+                            img.onload = function(){
+                                $loading.remove();
+                                resolve(self.zoomArea);
+                            }
                         } else {
                             reject(false);
                         }
@@ -4956,6 +5078,16 @@ amp.stats.event = function(dom,type,event,value){
         },
 
         zoomIn: function (e) {
+            var self = this;
+            if (!self.zoomArea) {
+                self._setupZoomArea().then(function(area){
+                    if(!area){
+                        return;
+                    }
+                    self.zoomIn(e);
+                });
+                return false;
+            }
             if(!this.options.scaleSteps){
                 if(this.scale != 1){
                     return;
@@ -4969,7 +5101,20 @@ amp.stats.event = function(dom,type,event,value){
                     return;
                 }
             }
+
+            if (self.zoomArea && self.zoomArea.animating) {
+                return;
+            }
+
+            if(this.scale == this.options.scaleMax) {
+                if (this.options.events.zoomIn) {
+                    self.zoomArea.$container.off(this.options.events.zoomIn,this.zoomIn);
+                    self.isZoomIn = false;
+                }
+            }
+
             var currScale = this.scale;
+
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
                 this.scale = Math.min(this.scale,this.options.scaleMax);
@@ -4981,14 +5126,31 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale);
-            // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
-            setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
-                if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                    $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
-                }
-            },this),1);
+            this.setScale(this.scale).then(function(){
+                // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
+                setTimeout($.proxy(function(){
+                    if (!self.isMoveOn  && self.options.events.move) {
+                        self.zoomArea.$container.on(this.options.events.move, $.proxy(self._setPos,self));
+                        self.isMoveOn = true;
+                    }
+                    if (self.options.scaleProcess) {
+                        if(!self.options.scaleSteps || self.scale == self.options.scaleMax) {
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
+                        } else {
+                            if (!self.isZoomIn) {
+                                self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(self.zoomIn,self));
+                                self.isZoomIn = true;
+                            }
+                        }
+                    } else {
+                        if(!self.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
+                        }
+                    }
+
+                },self),500);
+            });
+
         },
 
         zoomInClick: function (e) {
@@ -5007,13 +5169,13 @@ amp.stats.event = function(dom,type,event,value){
             this.setScale(this.scale);
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
+                self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
             },this),1);
         },
 
         setScale : function(s) {
             this.scale = s;
-            this._setupZoomArea().then($.proxy(function(area){
+            return this._setupZoomArea().then($.proxy(function(area){
                 if(!area){
                     return;
                 }
@@ -5024,11 +5186,23 @@ amp.stats.event = function(dom,type,event,value){
             },this));
         },
         _setPos : function(e){
+            if(e.type === 'touchmove'){
+                this._touchmove = true;
+            }
             this._track('settingPos',{domEvent:e});
             var pos = e?this._getPercentagePos(e):{x:0.5,y:0.5};
             this.zoomArea.setPosition(pos.x,pos.y)
         },
         zoomOut:function(e) {
+            this.zoomArea.allowClone = false;
+            if(this._touchmove) {
+                return false;
+            }
+
+            if (this.zoomArea && this.zoomArea.animating) {
+                return;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale -= this.options.scaleStep;
@@ -5041,13 +5215,15 @@ amp.stats.event = function(dom,type,event,value){
             }
             if(this.scale == 1) {
                 if (this.options.events.move) {
-                    $(document).off(this.options.events.move, this._setPos);
+                    this.zoomArea.$container.off(this.options.events.move, this._setPos);
+                    this.isMoveOn = false;
                 }
 
                 if (this.options.events.zoomOut) {
-                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                    this.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
+
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -5057,14 +5233,15 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             if (this.options.events.move) {
-                $(document).off(this.options.events.move, this._setPos);
+                self.zoomArea.$container.off(this.options.events.move, this._setPos);
             }
 
             if (this.options.events.zoomOut) {
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                self.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
             }
 
             this.scale = 1;
+
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -5197,6 +5374,9 @@ amp.stats.event = function(dom,type,event,value){
         this.zoomArea = zoom.zoomArea;
         this.cb = cb;
         this.element = zoom.element;
+        if(!this.zoomArea.newSize){
+            this.zoomArea.newSize = {'x':this.zoomArea.$source.width(), 'y':this.zoomArea.$source.height()};
+        }
         this.currentPixPos = this.zoomArea.getPixPos();
         $(document).on('mousemove touchmove', $.proxy(this.move,this));
         $(document).on('mouseup touchend', $.proxy(this.end,this));
@@ -5237,7 +5417,7 @@ amp.stats.event = function(dom,type,event,value){
     var zoomArea = function($source,$area,originalSize,transforms) {
         this.animating = false;
         this.transforms = transforms;
-        this.initialSrc = $source.attr('src');
+        this.initialSrc = $source[0].src;
         this.scale = 1;
         this.$area = $area;
         this.$source = $source;
@@ -5253,12 +5433,20 @@ amp.stats.event = function(dom,type,event,value){
     };
 
     zoomArea.prototype.createContainer = function() {
+        var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = $('<img style="display:none">');
-        this.$preloader.on('load', $.proxy(this.setImage,this));
-        this.$zoomed = $('<img class="amp-zoomed" src=""/>');
+        this.$preloader = new Image();
+        $(this.$preloader).on('load', function(){
+            //Assign preloader loaded Boolean to true
+            self._preloaderImgLoaded = true;
+            if (self.allowClone && !self.animating) {
+                self.updateImageSrc(true);
+            }
+        });
+        this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
+        this.$zoomedClone = $('<img class="amp-zoomed-clone" style="z-index:2;" src=""/>');
+        this.$container.append(this.$zoomedClone);
         this.$container.append(this.$zoomed);
-        this.$container.append(this.$preloader);
         this.$area.append(this.$container);
         this.$container.css({
             position:'absolute',
@@ -5276,6 +5464,7 @@ amp.stats.event = function(dom,type,event,value){
     zoomArea.prototype.setPosition = function(x,y) {
         if(this.animating)
             return;
+
         if(this.$zoomed.width()<=this.$area.width()) {
             x = 0.5;
         }
@@ -5289,6 +5478,8 @@ amp.stats.event = function(dom,type,event,value){
         y = Math.min(1,Math.max(0,y));
         this.$zoomed.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
         this.$zoomed.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
+        this.$zoomedClone.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
+        this.$zoomedClone.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
     };
 
     zoomArea.prototype.getPixPos = function(x,y) {
@@ -5315,38 +5506,78 @@ amp.stats.event = function(dom,type,event,value){
         if(size.y <= this.$area.height()) {
             pos.y = this.getPixPos(0.5,0.5).y;
         }
-
-        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        this.$zoomedClone.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        setTimeout($.proxy(function(){
             this.animating = false;
             if (cb) {
                 cb();
             }
-        },this));
+        },this),500);
+    };
+
+     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
+        var self = this;
+        if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
+            return false;
+        }
+        self.setImage();
 
     };
 
     zoomArea.prototype.setScale = function(scale,cb){
+        var self = this;
+        var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
         }
+
+        if(!scaleIncreased){
+            this.allowClone = false;
+        }
+        else{
+            this.allowClone = true;
+        }
+
+        self._preloaderImgLoaded = false;
+
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
             this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
-            this.$zoomed.attr('src',this.$source.attr('src'));
+            this.$zoomed.attr('src',this.$source[0].src);
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
                 this.$zoomed.height(this.$source.height());
+                this.$zoomedClone.width(this.$source.width());
+                this.$zoomedClone.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
             this.show();
         }
         if(scale==1){
-            this.animate(this.newSize,this.getPixPos(), $.proxy(this.hide,this));
+            this.animate(this.newSize,this.getPixPos(), function(){
+                self.hide();
+                self.updateImageSrc(false);
+            });
         } else {
-            this.animate(this.newSize,this.getPixPos());
+            this.animate(this.newSize, this.getPixPos(), function(){
+                    self.updateImageSrc(scaleIncreased);
+            });
         }
         this.scale = scale;
         this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
@@ -5365,6 +5596,7 @@ amp.stats.event = function(dom,type,event,value){
     };
 
     zoomArea.prototype.invalidateImageURL = function(size) {
+        var self = this;
         var templateQueryParam = '';
 
         if (this.transforms && this.transforms.length) {
@@ -5376,14 +5608,19 @@ amp.stats.event = function(dom,type,event,value){
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        this.$preloader.attr('src',src);
+        self.$preloader.setAttribute('src', src);
+
     };
     zoomArea.prototype.setImage = function() {
-        this.$zoomed.attr('src',this.$preloader.attr('src'));
+        var self = this;
+        var previousSrc = self.$zoomed[0].src;
+        self.$zoomed.attr('src', self.$preloader.src);
+        self.$zoomedClone.attr('src', previousSrc);
     };
 
 
 }(jQuery));
+
 (function ($) {
 
     $.widget("amp.ampVideo", {
@@ -5391,7 +5628,7 @@ amp.stats.event = function(dom,type,event,value){
             autoplay: false,
             loop: false,
             muted: false,
-            skin: 'amp-video-skin',
+            skin: '',
             responsive: true,
             preload: 'auto',
             pauseOnHide: true,
@@ -5425,7 +5662,7 @@ amp.stats.event = function(dom,type,event,value){
             this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + this.options.skin);
+            video.addClass('video-js' + ' ' + this.options.skin + ' ' + 'vjs-big-play-centered');
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -5452,6 +5689,11 @@ amp.stats.event = function(dom,type,event,value){
             }
 
             this._player.ready(function () {
+
+                if(this.options_.muted){
+                    this.volume(0);
+                }
+
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {
@@ -5527,10 +5769,12 @@ amp.stats.event = function(dom,type,event,value){
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
+                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
+                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
@@ -5540,8 +5784,9 @@ amp.stats.event = function(dom,type,event,value){
             if(visible == this._visible)
                 return;
 
+            this._track('visible',{'visible':visible});
+
             if (visible) {
-                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {
@@ -5617,7 +5862,6 @@ amp.stats.event = function(dom,type,event,value){
         state: function(state){
             if (state === void 0)
                 return this._currentState;
-
             this._currentState = state;
             this._trigger("stateChange", null, {state:state})
         },
@@ -5629,6 +5873,7 @@ amp.stats.event = function(dom,type,event,value){
         },
         _destroy: function() {
             this._player.dispose();
+            this._player = null;
             this.element[0].outerHTML = this._savedHTML;
         },
         _sanitisePlugins: function(plugins){
@@ -5695,6 +5940,7 @@ amp.stats.event = function(dom,type,event,value){
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
+            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -5712,9 +5958,19 @@ amp.stats.event = function(dom,type,event,value){
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            children.css({'display':'none'});
-            children.eq(this._index-1).css('display','block');
-            children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            var currentChild =  children.eq(this._index-1);
+            var currentChildClone = currentChild.clone();
+            currentChildClone.addClass('amp-frame-clone');
+            if (this.isWebkit){
+                children.css({'display':'none'});
+                currentChild.css('display','block');
+            } else {
+                children.css({'z-index':-1});
+                currentChild.css('z-index', 1);
+            }
+
+            this.element.append(currentChildClone);
+            currentChild.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
                     return _self._calcSize();
@@ -5971,7 +6227,7 @@ amp.stats.event = function(dom,type,event,value){
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -5994,7 +6250,6 @@ amp.stats.event = function(dom,type,event,value){
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
-            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -6002,10 +6257,6 @@ amp.stats.event = function(dom,type,event,value){
                 } else {
                     this.moveDir = this.options.orientation;
                 }
-            }
-            if(this.options.orientation != this.moveDir){
-                return true;
-            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
@@ -6071,25 +6322,51 @@ amp.stats.event = function(dom,type,event,value){
                     return;
                 var speed = distance/time,
                     travelSpeed = speed,
-                    fiction = this.options.friction,
+                    friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
                     travelTime = 0,
                     timeInterval = 10; // time interval in ms
                 // Meeting the min distance requirement
-                if(Math.abs(totalDistance)<this.options.minDistance)
+                if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
-                // every 10ms the speed reduces by the friction percentage
-                while(Math.abs(travelSpeed)>0.1) {
-                    travelSpeed*=fiction;
-                    travelDistance += travelSpeed*timeInterval;
-                    travelTime+=timeInterval;
-                    setTimeout((function(td){
-                        return function() {
-                            self._moveSpin(td+totalDistance,e,sindex);
-                        }
-                    })(travelDistance),travelTime)
-                }
+
+                var lastAnimationTime = null;
+
+                var animateMomentum = function(timeStamp) {
+                    var timeElapsed;
+
+                    if (lastAnimationTime) {
+                        timeElapsed = timeStamp - lastAnimationTime;
+                    } else {
+                        // this is the first iteration, assume 15ms
+                        timeElapsed = 15;
+                    }
+
+                    lastAnimationTime = timeStamp;
+
+                    // apply a unit of friction for every elapsed 10ms
+                    var frictionIteration = timeElapsed / 10;
+                    while (frictionIteration > 0) {
+                        // allow for a partial application of friction, ie. if we had to apply 3.5 friction iterations
+                        // for the last iteration (0.5), we only want to apply 50% of the friction speed delta
+                        travelSpeed -= (travelSpeed - travelSpeed * friction) * Math.min(frictionIteration, 1);
+                        frictionIteration -= 1;
+                    }
+
+                    travelDistance += travelSpeed * timeElapsed;
+                    travelTime += timeElapsed;
+
+                    self._moveSpin(travelDistance + totalDistance, e, sindex);
+
+                    if (Math.abs(travelSpeed) > 0.1) {
+                        window.requestAnimationFrame(animateMomentum);
+                    }
+                };
+
+                // trigger the initial momentum animation
+                window.requestAnimationFrame(animateMomentum);
+
                 return;
             }
         },
@@ -6181,11 +6458,18 @@ amp.stats.event = function(dom,type,event,value){
                 return;
             }
             nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            nextItem.css('display','block');
+            if (this.isWebkit){
+                nextItem.css('display', 'block');
+                currItem.css('display', 'none');
+            }else{
+                nextItem.css('zIndex', 1);
+                currItem.css('zIndex', -1);
+            }
             currItem.removeClass(this.options.states.selected);
-            currItem.css('display','none');
             this._setIndex(_index);
 
+            // set the index, but ignore visibility toggling as this is already done
+            this._setIndex(_index, true);
         },
         _track: function(event,value) {
             this._trigger( event, null, value );

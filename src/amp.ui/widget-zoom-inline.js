@@ -9,6 +9,7 @@
             scaleStep: 0.5,
             // toggle the zoom or not, needed when we are using the same mouse event to zoom in and out
             scaleSteps: false,
+            scaleProcess: false,
             events:{
                 zoomIn:'mouseup touchstart',
                 zoomOut:'mouseup touchend',
@@ -52,6 +53,7 @@
                 });
 
                 this.element.parent().on('mousedown touchstart',$.proxy(function(e){
+                    this._touchmove = false;
                     // are we panning? if so don't let mousedown trigger anything else
                     if(this.scale>1) {
                         e.stopPropagation();
@@ -72,6 +74,7 @@
             }
             if(this.options.pinch) {
                 this.element.parent().on('touchstart',$.proxy(function(e){
+                    this_touchmove = false;
                     if(this.pincher) {
                         this.pincher.remove();
                         delete this.pincher;
@@ -103,7 +106,7 @@
             if (this._visible == visible) {
                 return;
             }
-            if (visible) this._track('visible',{'visible':visible});
+
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
@@ -111,10 +114,13 @@
             } else {
                 this.zoomOutFull();
             }
+
+            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
+            this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -123,8 +129,17 @@
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
+                            var self = this;
+                            var img = new Image();
+                            img.src = this.element.attr('src');
+                            var $loading = $('<div class="amp-loading"></div>');
+                            this.$parent.append($loading);
                             this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
-                            resolve(this.zoomArea);
+
+                            img.onload = function(){
+                                $loading.remove();
+                                resolve(self.zoomArea);
+                            }
                         } else {
                             reject(false);
                         }
@@ -176,6 +191,16 @@
         },
 
         zoomIn: function (e) {
+            var self = this;
+            if (!self.zoomArea) {
+                self._setupZoomArea().then(function(area){
+                    if(!area){
+                        return;
+                    }
+                    self.zoomIn(e);
+                });
+                return false;
+            }
             if(!this.options.scaleSteps){
                 if(this.scale != 1){
                     return;
@@ -189,7 +214,20 @@
                     return;
                 }
             }
+
+            if (self.zoomArea && self.zoomArea.animating) {
+                return;
+            }
+
+            if(this.scale == this.options.scaleMax) {
+                if (this.options.events.zoomIn) {
+                    self.zoomArea.$container.off(this.options.events.zoomIn,this.zoomIn);
+                    self.isZoomIn = false;
+                }
+            }
+
             var currScale = this.scale;
+
             if(this.options.scaleSteps) {
                 this.scale+=this.options.scaleStep;
                 this.scale = Math.min(this.scale,this.options.scaleMax);
@@ -201,14 +239,31 @@
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale);
-            // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
-            setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
-                if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                    $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
-                }
-            },this),1);
+            this.setScale(this.scale).then(function(){
+                // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
+                setTimeout($.proxy(function(){
+                    if (!self.isMoveOn  && self.options.events.move) {
+                        self.zoomArea.$container.on(this.options.events.move, $.proxy(self._setPos,self));
+                        self.isMoveOn = true;
+                    }
+                    if (self.options.scaleProcess) {
+                        if(!self.options.scaleSteps || self.scale == self.options.scaleMax) {
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
+                        } else {
+                            if (!self.isZoomIn) {
+                                self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(self.zoomIn,self));
+                                self.isZoomIn = true;
+                            }
+                        }
+                    } else {
+                        if(!self.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
+                        }
+                    }
+
+                },self),500);
+            });
+
         },
 
         zoomInClick: function (e) {
@@ -227,13 +282,13 @@
             this.setScale(this.scale);
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
-                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
+                self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
             },this),1);
         },
 
         setScale : function(s) {
             this.scale = s;
-            this._setupZoomArea().then($.proxy(function(area){
+            return this._setupZoomArea().then($.proxy(function(area){
                 if(!area){
                     return;
                 }
@@ -244,11 +299,23 @@
             },this));
         },
         _setPos : function(e){
+            if(e.type === 'touchmove'){
+                this._touchmove = true;
+            }
             this._track('settingPos',{domEvent:e});
             var pos = e?this._getPercentagePos(e):{x:0.5,y:0.5};
             this.zoomArea.setPosition(pos.x,pos.y)
         },
         zoomOut:function(e) {
+            this.zoomArea.allowClone = false;
+            if(this._touchmove) {
+                return false;
+            }
+
+            if (this.zoomArea && this.zoomArea.animating) {
+                return;
+            }
+
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale -= this.options.scaleStep;
@@ -261,13 +328,15 @@
             }
             if(this.scale == 1) {
                 if (this.options.events.move) {
-                    $(document).off(this.options.events.move, this._setPos);
+                    this.zoomArea.$container.off(this.options.events.move, this._setPos);
+                    this.isMoveOn = false;
                 }
 
                 if (this.options.events.zoomOut) {
-                    $(document).off(this.options.events.zoomOut,this.zoomOut);
+                    this.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
+
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -277,14 +346,15 @@
                 return;
             }
             if (this.options.events.move) {
-                $(document).off(this.options.events.move, this._setPos);
+                self.zoomArea.$container.off(this.options.events.move, this._setPos);
             }
 
             if (this.options.events.zoomOut) {
-                $(document).off(this.options.events.zoomOut,this.zoomOut);
+                self.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
             }
 
             this.scale = 1;
+
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -417,6 +487,9 @@
         this.zoomArea = zoom.zoomArea;
         this.cb = cb;
         this.element = zoom.element;
+        if(!this.zoomArea.newSize){
+            this.zoomArea.newSize = {'x':this.zoomArea.$source.width(), 'y':this.zoomArea.$source.height()};
+        }
         this.currentPixPos = this.zoomArea.getPixPos();
         $(document).on('mousemove touchmove', $.proxy(this.move,this));
         $(document).on('mouseup touchend', $.proxy(this.end,this));
@@ -457,7 +530,7 @@
     var zoomArea = function($source,$area,originalSize,transforms) {
         this.animating = false;
         this.transforms = transforms;
-        this.initialSrc = $source.attr('src');
+        this.initialSrc = $source[0].src;
         this.scale = 1;
         this.$area = $area;
         this.$source = $source;
@@ -473,12 +546,20 @@
     };
 
     zoomArea.prototype.createContainer = function() {
+        var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = $('<img style="display:none">');
-        this.$preloader.on('load', $.proxy(this.setImage,this));
-        this.$zoomed = $('<img class="amp-zoomed" src=""/>');
+        this.$preloader = new Image();
+        $(this.$preloader).on('load', function(){
+            //Assign preloader loaded Boolean to true
+            self._preloaderImgLoaded = true;
+            if (self.allowClone && !self.animating) {
+                self.updateImageSrc(true);
+            }
+        });
+        this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
+        this.$zoomedClone = $('<img class="amp-zoomed-clone" style="z-index:2;" src=""/>');
+        this.$container.append(this.$zoomedClone);
         this.$container.append(this.$zoomed);
-        this.$container.append(this.$preloader);
         this.$area.append(this.$container);
         this.$container.css({
             position:'absolute',
@@ -496,6 +577,7 @@
     zoomArea.prototype.setPosition = function(x,y) {
         if(this.animating)
             return;
+
         if(this.$zoomed.width()<=this.$area.width()) {
             x = 0.5;
         }
@@ -509,6 +591,8 @@
         y = Math.min(1,Math.max(0,y));
         this.$zoomed.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
         this.$zoomed.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
+        this.$zoomedClone.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
+        this.$zoomedClone.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
     };
 
     zoomArea.prototype.getPixPos = function(x,y) {
@@ -535,38 +619,78 @@
         if(size.y <= this.$area.height()) {
             pos.y = this.getPixPos(0.5,0.5).y;
         }
-
-        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+        this.$zoomed.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        this.$zoomedClone.css({
+            'width':size.x,
+            'height':size.y,
+            'left':pos.x+'px',
+            'top':pos.y+'px',
+            'transition': 'all 0.5s ease'
+        })
+        setTimeout($.proxy(function(){
             this.animating = false;
             if (cb) {
                 cb();
             }
-        },this));
+        },this),500);
+    };
+
+     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
+        var self = this;
+        if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
+            return false;
+        }
+        self.setImage();
 
     };
 
     zoomArea.prototype.setScale = function(scale,cb){
+        var self = this;
+        var scaleIncreased = scale > this.scale;
         if(scale == this.scale) {
             return;
         }
+
+        if(!scaleIncreased){
+            this.allowClone = false;
+        }
+        else{
+            this.allowClone = true;
+        }
+
+        self._preloaderImgLoaded = false;
+
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
             this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
-            this.$zoomed.attr('src',this.$source.attr('src'));
+            this.$zoomed.attr('src',this.$source[0].src);
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
                 this.$zoomed.height(this.$source.height());
+                this.$zoomedClone.width(this.$source.width());
+                this.$zoomedClone.height(this.$source.height());
             }
             this.setPosition(0.5,0.5);
             this.show();
         }
         if(scale==1){
-            this.animate(this.newSize,this.getPixPos(), $.proxy(this.hide,this));
+            this.animate(this.newSize,this.getPixPos(), function(){
+                self.hide();
+                self.updateImageSrc(false);
+            });
         } else {
-            this.animate(this.newSize,this.getPixPos());
+            this.animate(this.newSize, this.getPixPos(), function(){
+                    self.updateImageSrc(scaleIncreased);
+            });
         }
         this.scale = scale;
         this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
@@ -585,6 +709,7 @@
     };
 
     zoomArea.prototype.invalidateImageURL = function(size) {
+        var self = this;
         var templateQueryParam = '';
 
         if (this.transforms && this.transforms.length) {
@@ -596,10 +721,14 @@
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        this.$preloader.attr('src',src);
+        self.$preloader.setAttribute('src', src);
+
     };
     zoomArea.prototype.setImage = function() {
-        this.$zoomed.attr('src',this.$preloader.attr('src'));
+        var self = this;
+        var previousSrc = self.$zoomed[0].src;
+        self.$zoomed.attr('src', self.$preloader.src);
+        self.$zoomedClone.attr('src', previousSrc);
     };
 
 

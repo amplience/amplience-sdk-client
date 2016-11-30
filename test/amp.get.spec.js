@@ -47,7 +47,7 @@ describe('amp.get', function(){
         expect(resultMock.disposed).toBeTruthy();
     });
 
-    it('should fail when jsonp takes too long to return. (Internet Explorer onerror not firing bug)',function(){
+    xit('should fail when jsonp takes too long to return. (Internet Explorer onerror not firing bug)',function(){
         var success= jasmine.createSpy();
         var fail= jasmine.createSpy();
 
@@ -59,7 +59,7 @@ describe('amp.get', function(){
         expect(resultMock.disposed).toBeTruthy();
     });
 
-    it('should not call success callback if timeout has already triggered',function(){
+    xit('should not call success callback if timeout has already triggered',function(){
         var success= jasmine.createSpy();
         var fail= jasmine.createSpy();
         var fixture = loadJSONFixtures('test/fixtures/amp.get/response.success.json')['test/fixtures/amp.get/response.success.json'];
@@ -86,7 +86,7 @@ describe('amp.get', function(){
         expect(resultMock.disposed).toBeTruthy();
     });
 
-    it('should call the fail callback after 10 seconds if we receive an empty response',function(){
+    xit('should call the fail callback after 10 seconds if we receive an empty response',function(){
         var success = jasmine.createSpy();
         var fail = jasmine.createSpy();
 
