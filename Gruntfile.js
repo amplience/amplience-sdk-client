@@ -4,21 +4,18 @@
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         default: {},
-        less: {
-            options: {
-                ieCompat:true
-            },
+        sass: {
             development: {
                 files: {
-                    "dist/amplience-sdk-client.css": "css/*.less"
+                    "dist/amplience-sdk-client.css": "css/amp.scss"
                 }
             },
             production: {
                 options: {
-                    cleancss: true
+                    sourcemap: 'none'
                 },
                 files: {
-                    "dist/amplience-sdk-client.min.css": "css/*.less"
+                    "dist/amplience-sdk-client.min.css": "css/amp.scss"
                 }
             }
         },
@@ -61,7 +58,7 @@
         },
         watch: {
              files: ['Gruntfile.js', 'src/amp/*', 'src/amp.ui/*','css/*'],
-             tasks: [ 'includes:js','concat', 'strip_code','copy','less', 'uglify']
+             tasks: [ 'includes:js','concat', 'strip_code','copy','sass', 'uglify']
         },
 
 
@@ -120,7 +117,7 @@
                     files: [
                         'bower_components/jquery/jquery.js',
                         'bower_components/jquery-ui/ui/jquery.ui.widget.js',
-                        'bower_components/video.js/dist/video-js/video.dev.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
                         'test/amp/SDK.min.js',
                         'test/amp.ui/components.min.js',
@@ -151,7 +148,7 @@
                     files: [
                         'bower_components/jquery/jquery.js',
                         'bower_components/jquery-ui/ui/jquery.ui.widget.js',
-                        'bower_components/video.js/dist/video-js/video.dev.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
                         'test/amp/SDK.min.js',
                         'test/amp.ui/components.min.js',
@@ -174,20 +171,28 @@
                     singleRun: true,
                     autoWatch: false
                 }
-            },            
+            },
             teamcity: {
                 options: {
                     frameworks: ["jasmine"],
 
                     files: [
+                        'bower_components/jquery/jquery.js',
+                        'bower_components/jquery-ui/ui/jquery.ui.widget.js',
+                        'bower_components/video.js/dist/video-js/video.js',
                         'bower_components/jasmine-jquery/lib/jasmine-jquery.js',
-                        'test/amp/SDK.js',
-                        'test/amp.ui/components.js',
+                        'test/amp/SDK.min.js',
+                        'test/amp.ui/components.min.js',
                         'test/**/*.js',
-                        'test/components/*.js',
                         {
                             pattern: 'test/fixtures/**/*.json',
                             watched: true,
+                            included: false,
+                            served:true
+                        },
+                        {
+                            pattern: 'dist/**/*.css',
+                            watched: false,
                             included: false,
                             served:true
                         }
@@ -210,7 +215,9 @@
         copy: {
             assets:{
                 files: [
-                    {expand: true, cwd: 'assets/', src: ['**'], dest: 'dist/assets'}
+                    {expand: true, cwd: 'assets/', src: ['**'], dest: 'dist/assets'},
+                    {expand: true, cwd: 'bower_components/video.js/dist/', src: ['video.min.js', 'video-js.min.css', 'video-js.swf'], dest: 'dist/video-js'},
+                    {expand: true, cwd: 'bower_components/video.js/dist/font/', src: ['**'], dest: 'dist/video-js/font'}
                 ]
              }
         }
@@ -237,10 +244,12 @@
 
     grunt.loadNpmTasks('grunt-replace');
 
+    grunt.loadNpmTasks('grunt-contrib-sass');
+
 
     // Default task(s).
-    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','less', 'uglify','concat:together','replace']);
+    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','sass', 'uglify','concat:together','replace']);
 
     // Default task(s).
-    grunt.registerTask('tests', ['default','karma']);
+    grunt.registerTask('tests', ['default','karma:unit', 'karma:test']);
 };

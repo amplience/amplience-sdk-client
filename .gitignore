@@ -1,5 +1,6 @@
 !.gitkeep
 *.orig
+/.sass-cache/
 /node_modules
 /bower_components
 /build
@@ -11,3 +12,5 @@
 /coverage/*
 /*.iws
 /tmp/*
+nbproject
+.idea

@@ -16,6 +16,32 @@ var amp = amp || {};
  * @class __Global__
  */
 
+// requestAnimationFrame Polyfill (Paul Irish / Erik Möller)
+(function() {
+    var lastTime = 0;
+    var vendors = ['webkit', 'moz'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame =
+            window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+                timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
+
 // JSON
 var JSON = JSON || {};
 /**
@@ -1052,9 +1078,10 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
+ * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
+amp.get = function (assets, success, error, videoSort, timeout, transformData) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
         return function (name,data) {
@@ -1080,8 +1107,11 @@ amp.get = function (assets, success, error, videoSort) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                });
-            } else { 
+                },
+                    false,
+                    timeout,
+                    transformData || false);
+            } else {
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
                     if(videoSort) {
@@ -1105,10 +1135,18 @@ amp.get = function (assets, success, error, videoSort) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success)
+        if(objLength(dataWin)>0 && success) {
+            if(transformData && typeof transformData === 'function'){
+                dataWin = transformData(dataWin);
+            }
             success(dataWin);
-        if(objLength(dataFail)>0 && error)
+        }
+        if(objLength(dataFail)>0 && error) {
+            if(transformData && typeof transformData === 'function'){
+                dataFail = transformData(dataFail);
+            }
             error(dataFail);
+        }
     };
 
     var isValid = function(asset){
@@ -1124,14 +1162,14 @@ amp.get = function (assets, success, error, videoSort) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
         }
     }
 };
@@ -1215,8 +1253,8 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform){
-
+var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
+    var timeout = timeout || 60000;
     if(!transform){
         transform = '';
     } else {
@@ -1240,7 +1278,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, 10000);
+    }, timeout);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
@@ -1256,13 +1294,14 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail) {
+    amp.content = function (assets, win, fail, timeout) {
+        var timeout = timeout || 60000;
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets,function(wins,fails){
+        payloader(assets, timeout, function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -1294,7 +1333,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets,finished) {
+    var payloader = function(assets, timeout, finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -1319,7 +1358,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform){
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
         }
     };
 

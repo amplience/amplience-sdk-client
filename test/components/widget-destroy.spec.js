@@ -56,7 +56,7 @@ describe('amp.widget.destroy', function(){
         ampVideo:'video'
     };
 
-    describe('with no classes and styles defined', function(){
+    xdescribe('with no classes and styles defined', function(){
         beforeEach(function(){
             jasmine.Clock.useMock();
         });
@@ -85,7 +85,7 @@ describe('amp.widget.destroy', function(){
         }
     });
 
-    describe('with classes and styles defined', function(){
+    xdescribe('with classes and styles defined', function(){
         beforeEach(function(){
             jasmine.Clock.useMock();
         });
