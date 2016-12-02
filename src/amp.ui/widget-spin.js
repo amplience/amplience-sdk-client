@@ -375,8 +375,8 @@
             this._moveSpin(this.options.orientation == 'horz' ? dx : dy,e,sindex);
 
             if(this.options.orientation == this.moveDir){
-                return false;
                 e.preventDefault();
+                return false;
             }
         },
 
