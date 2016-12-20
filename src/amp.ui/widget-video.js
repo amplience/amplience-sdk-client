@@ -88,16 +88,18 @@
                     self.state(self._states.playing);
 
 
-                if(self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default){
+                if (self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default) {
                     self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
                     self._allowResolutionChange = false;
-                    self._player.on('resolutionchange', function(){
-                        if(self._player.paused()){
-                            if(self._allowResolutionChange){
+                    self._player.on('resolutionchange', function () {
+                        if (self._player.paused()) {
+                            if (self._allowResolutionChange) {
                                 self._player.play();
                                 self._player.pause();
                             }
-                            self._allowResolutionChange = true;
+                            if (self._player.currentTime() > 0.5) {
+                                self._allowResolutionChange = true;
+                            }
                         }
                     });
                 }
