@@ -89,8 +89,6 @@
 
 
                 if(self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default){
-                    console.log(self.options.plugins['videoJsResolutionSwitcher'].default);
-                    console.log(self._player);
                     self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
                 }
 
