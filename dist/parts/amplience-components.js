@@ -1,4 +1,4 @@
-// amplience-sdk-client v{{VERSION}}
+// amplience-sdk-client v0.1.0
 (function ( $ ) {
     $.widget( "amp.ampStack", {
         // Default options.

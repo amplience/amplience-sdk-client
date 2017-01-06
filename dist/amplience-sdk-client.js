@@ -1500,8 +1500,8 @@ amp.genVideoHTML = function(asset,  videoSourceSort){
             var media = sorted[m];
             var src = document.createElement('source');
             src.setAttribute('src',media.src);
-            src.setAttribute('data-res',media.profileLabel);
-            src.setAttribute('data-bitrate',media.bitrate);
+            src.setAttribute('res',media.bitrate);
+            src.setAttribute('label',media.profileLabel);
             src.setAttribute('type', amp.videoToFormat(media));
             video.appendChild(src);
         }
@@ -5702,6 +5702,23 @@ amp.stats.event = function(dom,type,event,value){
                 if (self.options.autoplay)
                     self.state(self._states.playing);
 
+
+                if (self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default) {
+                    self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
+                    self._allowResolutionChange = false;
+                    self._player.on('resolutionchange', function () {
+                        if (self._player.paused()) {
+                            if (self._allowResolutionChange) {
+                                self._player.play();
+                                self._player.pause();
+                            }
+                            if (self._player.currentTime() > 0.5) {
+                                self._allowResolutionChange = true;
+                            }
+                        }
+                    });
+                }
+
                 this.on("play", function (e) {
                     if (!self.softPlay || !self.options.enableSoftStates) {
                         self.state(self._states.playing);
@@ -5870,8 +5887,8 @@ amp.stats.event = function(dom,type,event,value){
         },
         _sanitisePlugins: function(plugins){
             // setting plugins to false doesn't deactivate, remove instead
-            if (plugins && plugins['resolutions'] == false){
-                delete plugins['resolutions'];
+            if (plugins && plugins['videoJsResolutionSwitcher'] == false){
+                delete plugins['videoJsResolutionSwitcher'];
             }
             return plugins;
         }
