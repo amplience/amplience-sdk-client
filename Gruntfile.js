@@ -22,9 +22,12 @@
         cssmin: {
             target: {
                 files: [{
-                    "dist/amplience-sdk-client.css": ["dist/amplience-sdk-client.min.css"]
-                },{
-                    "dist/video-js/video-js.min.css": ["dist/video-js/video-js.min.css"]
+                    src: "dist/amplience-sdk-client.css",
+                    dest:"dist/amplience-sdk-client.min.css"
+                },
+                {
+                    src: "dist/video-js/video-js.min.css",
+                    dest: "dist/video-js/video-js.min.css"
                 }]
             }
         },
