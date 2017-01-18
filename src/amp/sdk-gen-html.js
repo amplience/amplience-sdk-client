@@ -126,8 +126,8 @@ amp.genVideoHTML = function(asset,  videoSourceSort){
             var media = sorted[m];
             var src = document.createElement('source');
             src.setAttribute('src',media.src);
-            src.setAttribute('data-res',media.profileLabel);
-            src.setAttribute('data-bitrate',media.bitrate);
+            src.setAttribute('res',media.bitrate);
+            src.setAttribute('label',media.profileLabel);
             src.setAttribute('type', amp.videoToFormat(media));
             video.appendChild(src);
         }

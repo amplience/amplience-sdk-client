@@ -619,26 +619,18 @@
         if(size.y <= this.$area.height()) {
             pos.y = this.getPixPos(0.5,0.5).y;
         }
-        this.$zoomed.css({
-            'width':size.x,
-            'height':size.y,
-            'left':pos.x+'px',
-            'top':pos.y+'px',
-            'transition': 'all 0.5s ease'
-        })
-        this.$zoomedClone.css({
-            'width':size.x,
-            'height':size.y,
-            'left':pos.x+'px',
-            'top':pos.y+'px',
-            'transition': 'all 0.5s ease'
-        })
+
+        var animConfig = {'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'};
+
+        this.$zoomed.animate(animConfig, 500);
+        this.$zoomedClone.animate(animConfig, 500);
+
         setTimeout($.proxy(function(){
-            this.animating = false;
             if (cb) {
                 cb();
             }
-        },this),500);
+            this.animating = false;
+        },this),600);
     };
 
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){

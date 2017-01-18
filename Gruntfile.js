@@ -6,17 +6,29 @@
         default: {},
         sass: {
             development: {
-                files: {
+                files: [{
                     "dist/amplience-sdk-client.css": "css/amp.scss"
-                }
+                }]
             },
             production: {
                 options: {
                     sourcemap: 'none'
                 },
-                files: {
-                    "dist/amplience-sdk-client.min.css": "css/amp.scss"
-                }
+                files: [{
+                    "dist/amplience-sdk-client.css": "css/amp.scss"
+                }]
+            }
+        },
+        cssmin: {
+            target: {
+                files: [{
+                    src: "dist/amplience-sdk-client.css",
+                    dest:"dist/amplience-sdk-client.min.css"
+                },
+                {
+                    src: "dist/video-js/video-js.min.css",
+                    dest: "dist/video-js/video-js.min.css"
+                }]
             }
         },
         replace: {
@@ -43,7 +55,12 @@
                 {
                     src: 'dist/parts/amplience-components.js',
                     dest: 'dist/parts/amplience-components.min.js'
-                }]
+                },
+                {
+                    src: 'dist/video-js/video.min.js',
+                    dest: 'dist/video-js/video.min.js'
+                }
+                ]
             },
             tests:{
                 files:[{
@@ -79,8 +96,8 @@
                                                        'src/amp.ui/widget-zoom.js',
                                                        'src/amp.ui/widget-zoom-inline.js',
                                                        'src/amp.ui/widget-video.js',
-                                                       'src/amp.ui/widget-spin.js',
-                                                       'src/amp.ui/video.quality.js']},
+                                                       'src/amp.ui/widget-spin.js'
+                                                       ]},
                     {'test/amp.ui/components.js': ['src/amp.ui/widget-stack.js',
                                                        'src/amp.ui/widget-carousel.js',
                                                        'src/amp.ui/widget-load.js',
@@ -90,6 +107,14 @@
                                                        'src/amp.ui/widget-zoom-inline.js',
                                                        'src/amp.ui/widget-video.js',
                                                        'src/amp.ui/widget-spin.js']}
+                ]
+            },
+            videojs: {
+                files: [
+                    {'dist/video-js/video.min.js': ['dist/video-js/video.min.js',
+                        'bower_components/videojs-resolution-switcher/lib/videojs-resolution-switcher.js']},
+                    {'dist/video-js/video-js.min.css': ['dist/video-js/video-js.min.css',
+                        'bower_components/videojs-resolution-switcher/lib/videojs-resolution-switcher.css']}
                 ]
             },
             together: {
@@ -222,7 +247,6 @@
              }
         }
     });
-    grunt.loadNpmTasks('grunt-contrib-less');
 
     grunt.loadNpmTasks('grunt-contrib-copy');
 
@@ -246,9 +270,11 @@
 
     grunt.loadNpmTasks('grunt-contrib-sass');
 
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
+
 
     // Default task(s).
-    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy','sass', 'uglify','concat:together','replace']);
+    grunt.registerTask('default', ['includes:js','concat:amp','concat:ampui', 'strip_code','copy', 'concat:videojs', 'sass', 'uglify', 'cssmin', 'concat:together', 'replace']);
 
     // Default task(s).
     grunt.registerTask('tests', ['default','karma:unit', 'karma:test']);
