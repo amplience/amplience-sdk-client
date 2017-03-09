@@ -34,7 +34,8 @@
             play: {
                 onLoad:false,
                 onVisible:false,
-                repeat:1
+                repeat:1,
+                delay: 10
             },
             dragDistance:200,
             lazyLoad:false
@@ -169,7 +170,7 @@
                     if(self.options.play.onVisible && self._loaded) {
                         setTimeout(function() {
                             self.playRepeat(self.options.play.repeat);
-                        }, 600);
+                        }, self.options.play.delay);
                     }
                 }
             }
