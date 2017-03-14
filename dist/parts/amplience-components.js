@@ -460,9 +460,7 @@
                 visible : 'amp-visible',
                 partiallyVisible: 'amp-partially-visible'
             },
-            animationEndCallback: function(){
-                console.log('animation end');
-            }
+            animationEndCallback: function(){}
         },
         _getCreateOptions:function(){
             var attributes = this.element.data().ampCarousel;
