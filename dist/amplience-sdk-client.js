@@ -2535,6 +2535,9 @@ amp.stats.event = function(dom,type,event,value){
             states : {
                 visible : 'amp-visible',
                 partiallyVisible: 'amp-partially-visible'
+            },
+            animationEndCallback: function(){
+                console.log('animation end');
             }
         },
         _getCreateOptions:function(){
@@ -2585,7 +2588,7 @@ amp.stats.event = function(dom,type,event,value){
                     var move = function(evt) {
                         self._movedCounter +=1;
                         if(self._movedCounter >= 7){
-                        self.moved = true;
+                            self.moved = true;
                         }
                     };
                     var activate = (function(_i){
@@ -2613,7 +2616,7 @@ amp.stats.event = function(dom,type,event,value){
             if(this.options.responsive){
                 $(window).bind("resize", function(_self) {
                     return function() {
-                       return setTimeout($.proxy(_self.redraw,_self),1);
+                        return setTimeout($.proxy(_self.redraw,_self),1);
                     }
                 }(self));
             }
@@ -2701,37 +2704,37 @@ amp.stats.event = function(dom,type,event,value){
         },
         _direction : function(index) {
 
-          if(!this.options.loop) {
-              return index>this._index;
-          }
-          var forw=0, back=0;
-          this._index = Math.min(this._index,this.count);
-           var oIndex =  this._index;
-          while(oIndex!=index) {
-              if(oIndex>this.count){
-                oIndex = 1;
-                continue;
-              } else {
-                oIndex++;
-              }
-              forw++
-          }
-          oIndex = this._index;
-          while(oIndex!=index) {
-              if(oIndex<1) {
-                  oIndex = this.count;
-                  continue;
-              } else {
-                oIndex--;
-              }
+            if(!this.options.loop) {
+                return index>this._index;
+            }
+            var forw=0, back=0;
+            this._index = Math.min(this._index,this.count);
+            var oIndex =  this._index;
+            while(oIndex!=index) {
+                if(oIndex>this.count){
+                    oIndex = 1;
+                    continue;
+                } else {
+                    oIndex++;
+                }
+                forw++
+            }
+            oIndex = this._index;
+            while(oIndex!=index) {
+                if(oIndex<1) {
+                    oIndex = this.count;
+                    continue;
+                } else {
+                    oIndex--;
+                }
                 back++;
-          }
-          if(this.options.preferForward) {
-              if(forw>1 && back >1) {
-                  return true;
-              }
-          }
-          return forw<=back;
+            }
+            if(this.options.preferForward) {
+                if(forw>1 && back >1) {
+                    return true;
+                }
+            }
+            return forw<=back;
         },
         _loopIndex : function(dir,start,count) {
             var inc = dir ? 1 : -1;
@@ -2841,10 +2844,10 @@ amp.stats.event = function(dom,type,event,value){
 
             for (var i=0; i<count; i++) {
 
-               var eindex = dir? index+i:index-i;
-               if (eindex > this.count) {
-                   eindex = 1;
-               }
+                var eindex = dir? index+i:index-i;
+                if (eindex > this.count) {
+                    eindex = 1;
+                }
                 if(eindex < 1) {
                     eindex = this.count;
                 }
@@ -2897,6 +2900,7 @@ amp.stats.event = function(dom,type,event,value){
                     $container.css(self._canCSS3.transitionDuration,'');
                     if(onDone)
                         onDone();
+                    self.options.animationEndCallback();
                 });
             } else {
                 var anim = {};
@@ -2905,7 +2909,11 @@ amp.stats.event = function(dom,type,event,value){
                 } else {
                     anim.top = howMuch+'px';
                 }
-                $container.animate(anim, self.options.animDuration,'swing',onDone);
+                $container.animate(anim, self.options.animDuration,'swing',function(){
+                    if(onDone)
+                        onDone();
+                    self.options.animationEndCallback();
+                });
             }
 
         },
