@@ -795,6 +795,8 @@
             }
             this._containerPos = howMuch;
 
+            self.options.animationStartCallback();
+
             if(!animate) {
                 if(self._canCSS3.transform && self._canCSS3.transitionDuration) {
                     var transform = self._canCSS3.can3D ? (self.options.dir=='horz'?'translate3d('+howMuch+'px,0,0)':'translate3d(0, '+howMuch+'px,0)') : (self.options.dir=='horz'?'translateX('+howMuch+'px)':'translateY('+howMuch+'px');
@@ -812,7 +814,7 @@
                 return;
             }
 
-            if(self._canCSS3.transform && self._canCSS3.transitionDuration) {
+            if(self._canCSS3.transform && self._canCSS3.transitionDuration && !self.options.no3D) {
                 var transform = self._canCSS3.can3D ? (self.options.dir=='horz'?'translate3d('+howMuch+'px,0,0)':'translate3d(0, '+howMuch+'px,0)') : (self.options.dir=='horz'?'translateX('+howMuch+'px)':'translateY('+howMuch+'px');
                 $container.css(self._canCSS3.transform,transform);
                 $container.css(self._canCSS3.transitionTimingFunction, self.options.easing);
@@ -995,7 +997,6 @@
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
                 $(window).on('mouseup',$.proxy(this.stop,this));
-                widget.options.animationStartCallback();
                 return true;
             };
 
