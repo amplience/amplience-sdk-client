@@ -1169,7 +1169,7 @@ amp.get = function (assets, success, error, videoSort, timeout, transformData) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets[i].transform, timeout);
         }
     }
 };
