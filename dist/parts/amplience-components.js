@@ -459,7 +459,9 @@
             states : {
                 visible : 'amp-visible',
                 partiallyVisible: 'amp-partially-visible'
-            }
+            },
+            animationStartCallback: function(){},
+            animationEndCallback: function(){}
         },
         _getCreateOptions:function(){
             var attributes = this.element.data().ampCarousel;
@@ -509,7 +511,7 @@
                     var move = function(evt) {
                         self._movedCounter +=1;
                         if(self._movedCounter >= 7){
-                        self.moved = true;
+                            self.moved = true;
                         }
                     };
                     var activate = (function(_i){
@@ -537,7 +539,7 @@
             if(this.options.responsive){
                 $(window).bind("resize", function(_self) {
                     return function() {
-                       return setTimeout($.proxy(_self.redraw,_self),1);
+                        return setTimeout($.proxy(_self.redraw,_self),1);
                     }
                 }(self));
             }
@@ -625,37 +627,37 @@
         },
         _direction : function(index) {
 
-          if(!this.options.loop) {
-              return index>this._index;
-          }
-          var forw=0, back=0;
-          this._index = Math.min(this._index,this.count);
-           var oIndex =  this._index;
-          while(oIndex!=index) {
-              if(oIndex>this.count){
-                oIndex = 1;
-                continue;
-              } else {
-                oIndex++;
-              }
-              forw++
-          }
-          oIndex = this._index;
-          while(oIndex!=index) {
-              if(oIndex<1) {
-                  oIndex = this.count;
-                  continue;
-              } else {
-                oIndex--;
-              }
+            if(!this.options.loop) {
+                return index>this._index;
+            }
+            var forw=0, back=0;
+            this._index = Math.min(this._index,this.count);
+            var oIndex =  this._index;
+            while(oIndex!=index) {
+                if(oIndex>this.count){
+                    oIndex = 1;
+                    continue;
+                } else {
+                    oIndex++;
+                }
+                forw++
+            }
+            oIndex = this._index;
+            while(oIndex!=index) {
+                if(oIndex<1) {
+                    oIndex = this.count;
+                    continue;
+                } else {
+                    oIndex--;
+                }
                 back++;
-          }
-          if(this.options.preferForward) {
-              if(forw>1 && back >1) {
-                  return true;
-              }
-          }
-          return forw<=back;
+            }
+            if(this.options.preferForward) {
+                if(forw>1 && back >1) {
+                    return true;
+                }
+            }
+            return forw<=back;
         },
         _loopIndex : function(dir,start,count) {
             var inc = dir ? 1 : -1;
@@ -765,10 +767,10 @@
 
             for (var i=0; i<count; i++) {
 
-               var eindex = dir? index+i:index-i;
-               if (eindex > this.count) {
-                   eindex = 1;
-               }
+                var eindex = dir? index+i:index-i;
+                if (eindex > this.count) {
+                    eindex = 1;
+                }
                 if(eindex < 1) {
                     eindex = this.count;
                 }
@@ -792,6 +794,8 @@
                 return;
             }
             this._containerPos = howMuch;
+
+            self.options.animationStartCallback();
 
             if(!animate) {
                 if(self._canCSS3.transform && self._canCSS3.transitionDuration) {
@@ -821,6 +825,7 @@
                     $container.css(self._canCSS3.transitionDuration,'');
                     if(onDone)
                         onDone();
+                    self.options.animationEndCallback();
                 });
             } else {
                 var anim = {};
@@ -829,7 +834,11 @@
                 } else {
                     anim.top = howMuch+'px';
                 }
-                $container.animate(anim, self.options.animDuration,'swing',onDone);
+                $container.animate(anim, self.options.animDuration,'swing',function(){
+                    if(onDone)
+                        onDone();
+                    self.options.animationEndCallback();
+                });
             }
 
         },
@@ -2931,7 +2940,7 @@
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
-            this.zoomArea.allowClone = true;
+                this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -2945,7 +2954,7 @@
                             img.src = this.element.attr('src');
                             var $loading = $('<div class="amp-loading"></div>');
                             this.$parent.append($loading);
-                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
+                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms, this.options);
 
                             img.onload = function(){
                                 $loading.remove();
@@ -3253,7 +3262,7 @@
         var x = Math.abs(touches[0].pageX-touches[1].pageX),
             y = Math.abs(touches[0].pageY-touches[1].pageY);
         return Math.sqrt(
-                (x * x) + (y * y)
+            (x * x) + (y * y)
         );
     };
 
@@ -3338,8 +3347,11 @@
     };
 
 
-    var zoomArea = function($source,$area,originalSize,transforms) {
+    var zoomArea = function($source,$area,originalSize,transforms, options) {
+        this.options = options;
         this.animating = false;
+        this._allowChangeClone = true;
+        this.isFF = navigator.userAgent.toLowerCase().search("firefox") > -1;
         this.transforms = transforms;
         this.initialSrc = $source[0].src;
         this.scale = 1;
@@ -3441,10 +3453,10 @@
                 cb();
             }
             this.animating = false;
-        },this),600);
+        },this),this.isFF ? 1000 : 600);
     };
 
-     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
+    zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
             return false;
@@ -3492,7 +3504,7 @@
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                    self.updateImageSrc(scaleIncreased);
+                self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
@@ -3524,14 +3536,42 @@
         if(size.x == 0 || size.y ==0) {
             src='';
         }
+        self.$preloader = new Image();
+        self._preloaderImgLoaded = true;
         self.$preloader.setAttribute('src', src);
 
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
-        var previousSrc = self.$zoomed[0].src;
-        self.$zoomed.attr('src', self.$preloader.src);
-        self.$zoomedClone.attr('src', previousSrc);
+        var loaded;
+        var previousSrc = self.$zoomed.attr('src');
+
+        if(self._allowChangeClone){
+            self.$zoomedClone.attr('src', previousSrc);
+        }
+
+        if(self.$preloader.complete && self.$preloader.naturalWidth && self.$preloader.naturalWidth > 0){
+            if(loaded){
+                return;
+            }
+
+            setTimeout(function(){
+                self.$zoomed.attr('src', self.$preloader.src);
+            }, self.isFF ? 1000 : 10);
+            loaded = true;
+        }
+
+        else{
+            self.$preloader.onload = function(){
+                if(loaded){
+                    return;
+                }
+                self.$zoomed.attr('src', self.$preloader.src);
+                loaded = true;
+            };
+        }
+
+        self._allowChangeClone = false;
     };
 
 
@@ -3628,8 +3668,10 @@
 
 
                 if (self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default) {
-                    self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
-                    self._allowResolutionChange = false;
+                    self._player.on('ready', function () {
+                        self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
+                        self._allowResolutionChange = false;
+                    });
                     self._player.on('resolutionchange', function () {
                         if (self._player.paused()) {
                             if (self._allowResolutionChange) {
@@ -3856,7 +3898,8 @@
             play: {
                 onLoad:false,
                 onVisible:false,
-                repeat:1
+                repeat:1,
+                delay: 10
             },
             dragDistance:200,
             lazyLoad:false
@@ -3873,7 +3916,7 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent);
+            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -3977,18 +4020,21 @@
             return false;
         },
         visible:function(visible) {
-            if (visible != this._visible) {
-                this._super(visible);
+            var self = this;
+            if (visible != self._visible) {
+                self._super(visible);
                 if(visible) {
-                    if(this.options.preload=='visible') {
-                        this._startPreload();
+                    if(self.options.preload=='visible') {
+                        self._startPreload();
                     }
 
                     if(this.options.preload == 'none'){
-                        this._startPreload(this._index);
+                        self._startPreload(self._index);
                     }
-                    if(this.options.play.onVisible && this._loaded) {
-                        this.playRepeat(this.options.play.repeat);
+                    if(self.options.play.onVisible && self._loaded) {
+                        setTimeout(function() {
+                            self.playRepeat(self.options.play.repeat);
+                        }, self.options.play.delay);
                     }
                 }
             }
@@ -4197,8 +4243,8 @@
             this._moveSpin(this.options.orientation == 'horz' ? dx : dy,e,sindex);
 
             if(this.options.orientation == this.moveDir){
-                return false;
                 e.preventDefault();
+                return false;
             }
         },
 
