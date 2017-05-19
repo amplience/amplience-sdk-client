@@ -1,5 +1,5 @@
 /**
- * amp amplience-sdk-client v0.1.0
+ * amp amplience-sdk-client v{{VERSION}}
  *
  * @class amp
  */
