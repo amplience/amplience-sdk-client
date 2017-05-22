@@ -5008,7 +5008,9 @@ amp.stats.event = function(dom,type,event,value){
                     this.load();
                 }
             } else {
-                this.zoomOutFull();
+                if(!this.options.preventVisibleZoomOut){
+                    this.zoomOutFull();
+                }
             }
 
             this._track('visible',{'visible':visible});
