@@ -2583,7 +2583,7 @@ amp.stats.event = function(dom,type,event,value){
                     };
                     var move = function(evt) {
                         self._movedCounter +=1;
-                        if(self._movedCounter >= 7){
+                        if(self._movedCounter >= 3){
                             self.moved = true;
                         }
                     };
