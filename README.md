@@ -1,4 +1,4 @@
-#amplience-client-sdk
+# amplience-client-sdk
 
 Amplience Client SDK is a collection of tools designed to make the consumption of the Amplience platform easier for developers.
 
