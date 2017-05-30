@@ -334,26 +334,14 @@
                     return self._endDrag(e,o,mx,my,i);
                 }
             }(this._index);
-
-            var $innerSpin =  this.element.find('.amp-spin');
-            var $parentSpin = this.element.parents('.amp-spin');
-
-            if($innerSpin.length > 0 || $parentSpin.length > 0){
                 this.$document.on(this.options.events.move, m);
                 this.$document.on(this.options.events.end,u);
-            }
-
-            else {
-                this.element.on(this.options.events.move, m);
-                this.element.on(this.options.events.end, u);
-            }
 
             this._mouseMoveInfo = [{e:e,o:o,mx:mx,my:my,sindex:this._index}];
             if(window.navigator.userAgent.indexOf("MSIE ")>0){
                 return false;
             }
-
-            $innerSpin.each(function(i, element){
+            this.element.find('.amp-spin').each(function(i, element){
                 var childSpin = $(element).data()['amp-ampSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
@@ -433,20 +421,8 @@
             this._ended = true;
 
             this._track("endMove",{'domEvent': e});
-
-            var $innerSpin =  this.element.find('.amp-spin');
-            var $parentSpin = this.element.parents('.amp-spin');
-
-            if($innerSpin.length > 0 || $parentSpin.length > 0) {
                 this.$document.off(this.options.events.end, this._ubind);
                 this.$document.off(this.options.events.move, this._mbind);
-            }
-
-            else{
-                this.element.off(this.options.events.end,this._ubind);
-                this.element.off(this.options.events.move, this._mbind);
-            }
-
             clearInterval(this._timer);
 
             this._setCursor(this.options.cursor.inactive);
