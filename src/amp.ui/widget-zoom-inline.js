@@ -112,7 +112,9 @@
                     this.load();
                 }
             } else {
-                this.zoomOutFull();
+                if(!this.options.preventVisibleZoomOut){
+                    this.zoomOutFull();
+                }
             }
 
             this._track('visible',{'visible':visible});
