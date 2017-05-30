@@ -69,14 +69,11 @@
                 for (var i = 0 ; i < this.count; i++) {
                     var start = function() {
                         self.moved = false;
-                        setTimeout(function(){
-                            $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
-                        },1)
-
+                        $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
                     };
                     var move = function(evt) {
                         self._movedCounter +=1;
-                        if(self._movedCounter >= 7){
+                        if(self._movedCounter >= 3){
                             self.moved = true;
                         }
                     };
@@ -650,6 +647,10 @@
                 $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
+                    if(widget.preventStop){
+                        widget.preventStop = false;
+                        return;
+                    }
                     var nearest = this.findNearest();
                     var nearestIndex = nearest.index+1;
                     if (nearestIndex == widget._index) {
@@ -695,6 +696,7 @@
 
                     }
                 }
+                widget.preventStop = false;
             };
 
             m.getEvent = function(e) {

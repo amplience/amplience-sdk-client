@@ -23,28 +23,18 @@
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
-  <component name="JavaScriptLibraryMappings">
-    <file url="file://$PROJECT_DIR$" libraries="{sdk-client node_modules}" />
+  <component name="InspectionProjectProfileManager">
+    <profile version="1.0">
+      <option name="myName" value="Project Default" />
+    </profile>
+    <version value="1.0" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/sdk-client.iml" filepath="$PROJECT_DIR$/sdk-client.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" />
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-  </component>
-  <component name="libraryTable">
-    <library name="sdk-client node_modules" type="javaScript">
-      <properties>
-        <option name="frameworkName" value="node_modules" />
-        <sourceFilesUrls>
-          <item url="file://$PROJECT_DIR$/node_modules" />
-        </sourceFilesUrls>
-      </properties>
-      <CLASSES />
-      <SOURCES />
-    </library>
   </component>
 </project>

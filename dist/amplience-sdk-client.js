@@ -2579,14 +2579,11 @@ amp.stats.event = function(dom,type,event,value){
                 for (var i = 0 ; i < this.count; i++) {
                     var start = function() {
                         self.moved = false;
-                        setTimeout(function(){
-                            $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
-                        },1)
-
+                        $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
                     };
                     var move = function(evt) {
                         self._movedCounter +=1;
-                        if(self._movedCounter >= 7){
+                        if(self._movedCounter >= 3){
                             self.moved = true;
                         }
                     };
@@ -3160,6 +3157,10 @@ amp.stats.event = function(dom,type,event,value){
                 $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
+                    if(widget.preventStop){
+                        widget.preventStop = false;
+                        return;
+                    }
                     var nearest = this.findNearest();
                     var nearestIndex = nearest.index+1;
                     if (nearestIndex == widget._index) {
@@ -3205,6 +3206,7 @@ amp.stats.event = function(dom,type,event,value){
 
                     }
                 }
+                widget.preventStop = false;
             };
 
             m.getEvent = function(e) {
@@ -5008,7 +5010,9 @@ amp.stats.event = function(dom,type,event,value){
                     this.load();
                 }
             } else {
-                this.zoomOutFull();
+                if(!this.options.preventVisibleZoomOut){
+                    this.zoomOutFull();
+                }
             }
 
             this._track('visible',{'visible':visible});
@@ -6274,8 +6278,8 @@ amp.stats.event = function(dom,type,event,value){
                     return self._endDrag(e,o,mx,my,i);
                 }
             }(this._index);
-            this.$document.on(this.options.events.move, m);
-            this.$document.on(this.options.events.end,u);
+                this.$document.on(this.options.events.move, m);
+                this.$document.on(this.options.events.end,u);
 
             this._mouseMoveInfo = [{e:e,o:o,mx:mx,my:my,sindex:this._index}];
             if(window.navigator.userAgent.indexOf("MSIE ")>0){
@@ -6361,8 +6365,8 @@ amp.stats.event = function(dom,type,event,value){
             this._ended = true;
 
             this._track("endMove",{'domEvent': e});
-            this.$document.off(this.options.events.end,this._ubind);
-            this.$document.off(this.options.events.move,this._mbind);
+                this.$document.off(this.options.events.end, this._ubind);
+                this.$document.off(this.options.events.move, this._mbind);
             clearInterval(this._timer);
 
             this._setCursor(this.options.cursor.inactive);
