@@ -342,7 +342,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['amp-ampSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'] || $(element).data()['ampAmpSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
