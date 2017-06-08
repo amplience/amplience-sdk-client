@@ -1623,11 +1623,16 @@
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
             src = this.dimensionsParams(src);
+            var ampSrcSet = this.element.attr('data-amp-srcset') || null;
+
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
                 }
                 this.element.attr('src',src);
+                if(ampSrcSet){
+                    this.element.attr('srcset',ampSrcSet);
+                }
                 this.element.show();
                 return;
             }
@@ -1638,6 +1643,11 @@
             !this.options.insertAfter ? this.element.parent().append(this.loading) :this.options.insertAfter.prepend(this.loading);
             this.element.attr('src','');
             this.element.attr('src',src);
+
+            if(ampSrcSet){
+                this.element.attr('srcset','');
+                this.element.attr('srcset', ampSrcSet);
+            }
         },
 
         visible: function(visible) {
