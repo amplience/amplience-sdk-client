@@ -6223,10 +6223,14 @@ amp.stats.event = function(dom,type,event,value){
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom']  || components['ampAmpZoom']){
                     child.ampZoom({'loaded':onLoad});
                     child.ampZoom('load', this.options.preload);
                 }else{
+                    var imgComponent = components['amp-ampImage'] || components['ampAmpImage'];
+                    if(typeof imgComponent !== 'undefined' && imgComponent.loaded){
+                        onLoad();
+                    }
                     child.ampImage({'loaded':onLoad});
                     child.ampImage('load', this.options.preload);
                 }
