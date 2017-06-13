@@ -1623,11 +1623,16 @@
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
             src = this.dimensionsParams(src);
+            var ampSrcSet = this.element.attr('data-amp-srcset') || null;
+
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
                 }
                 this.element.attr('src',src);
+                if(ampSrcSet){
+                    this.element.attr('srcset',ampSrcSet);
+                }
                 this.element.show();
                 return;
             }
@@ -1638,12 +1643,21 @@
             !this.options.insertAfter ? this.element.parent().append(this.loading) :this.options.insertAfter.prepend(this.loading);
             this.element.attr('src','');
             this.element.attr('src',src);
+
+            if(ampSrcSet){
+                this.element.attr('srcset','');
+                this.element.attr('srcset', ampSrcSet);
+            }
         },
 
         visible: function(visible) {
             if(visible && visible!= this._visible) {
-                if(this.options.preload == 'visible')
+                if(this.options.preload == 'visible'){
+                    if(this.loaded || this.loading)
+                        return;
+
                     this.newLoad();
+            }
             }
             this._visible = visible;
         },
@@ -4125,7 +4139,7 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom'] || components['ampAmpZoom']){
                     child.ampZoom({'loaded':null});
                 }else{
                     child.ampImage({'loaded':null});
@@ -4137,10 +4151,14 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom']  || components['ampAmpZoom']){
                     child.ampZoom({'loaded':onLoad});
                     child.ampZoom('load', this.options.preload);
                 }else{
+                    var imgComponent = components['amp-ampImage'] || components['ampAmpImage'];
+                    if(typeof imgComponent !== 'undefined' && imgComponent.loaded){
+                        onLoad();
+                    }
                     child.ampImage({'loaded':onLoad});
                     child.ampImage('load', this.options.preload);
                 }
@@ -4210,7 +4228,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['amp-ampSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'] || $(element).data()['ampAmpSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }

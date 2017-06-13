@@ -257,7 +257,7 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom'] || components['ampAmpZoom']){
                     child.ampZoom({'loaded':null});
                 }else{
                     child.ampImage({'loaded':null});
@@ -269,10 +269,14 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom']  || components['ampAmpZoom']){
                     child.ampZoom({'loaded':onLoad});
                     child.ampZoom('load', this.options.preload);
                 }else{
+                    var imgComponent = components['amp-ampImage'] || components['ampAmpImage'];
+                    if(typeof imgComponent !== 'undefined' && imgComponent.loaded){
+                        onLoad();
+                    }
                     child.ampImage({'loaded':onLoad});
                     child.ampImage('load', this.options.preload);
                 }
@@ -342,7 +346,7 @@
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['amp-ampSpin'];
+                var childSpin = $(element).data()['amp-ampSpin'] || $(element).data()['ampAmpSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
