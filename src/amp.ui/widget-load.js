@@ -100,8 +100,12 @@
 
         visible: function(visible) {
             if(visible && visible!= this._visible) {
-                if(this.options.preload == 'visible')
+                if(this.options.preload == 'visible'){
+                    if(this.loaded || this.loading)
+                        return;
+
                     this.newLoad();
+            }
             }
             this._visible = visible;
         },
