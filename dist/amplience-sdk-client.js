@@ -3728,8 +3728,12 @@ amp.stats.event = function(dom,type,event,value){
 
         visible: function(visible) {
             if(visible && visible!= this._visible) {
-                if(this.options.preload == 'visible')
+                if(this.options.preload == 'visible'){
+                    if(this.loaded || this.loading)
+                        return;
+
                     this.newLoad();
+            }
             }
             this._visible = visible;
         },
@@ -6211,7 +6215,7 @@ amp.stats.event = function(dom,type,event,value){
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']){
+                if(components['amp-ampZoom'] || components['ampAmpZoom']){
                     child.ampZoom({'loaded':null});
                 }else{
                     child.ampImage({'loaded':null});
