@@ -2521,6 +2521,7 @@ amp.stats.event = function(dom,type,event,value){
             preferForward: false,
             no3D: false,
             thumbWidthExceed:0,
+            mouseDrag: false,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -3066,10 +3067,27 @@ amp.stats.event = function(dom,type,event,value){
                 this.yo = e.pageY - widget._containerPos;
                 this.xo2 = e.pageX;
                 this.yo2 = e.pageY;
+                var self = this;
+
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
                 $(window).on('mouseup',$.proxy(this.stop,this));
+
+                if(widget.options.mouseDrag) {
+                    $(window).on('mousedown.drag', function (dEvt) {
+                        $(window).on('mousemove.drag', function (mEvt) {
+                            self.move(mEvt);
+                        });
+                    });
+
+                    $(window).on('mouseup.drag', function (dEvt) {
+                        $(window).off('mousedown.drag');
+                        $(window).off('mousemove.drag');
+                        $(window).off('mouseup.drag');
+                    });
+                }
+
                 return true;
             };
 
