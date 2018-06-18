@@ -1080,7 +1080,7 @@ function objLength(obj) {
  * @param {Function} error Callback function called on unsuccessful load
  * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout) {
+    amp.get = function (assets, success, error, videoSort, timeout, transformData) {
     var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
 
     var win = function(url){
@@ -1107,7 +1107,10 @@ amp.get = function (assets, success, error, videoSort, timeout) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                });
+                        },
+                        false,
+                        timeout,
+                        transformData || false);
             } else { 
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
@@ -1132,10 +1135,18 @@ amp.get = function (assets, success, error, videoSort, timeout) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success)
+            if(objLength(dataWin)>0 && success) {
+                if(transformData && typeof transformData === 'function'){
+                    dataWin = transformData(dataWin);
+                }
             success(dataWin);
-        if(objLength(dataFail)>0 && error)
+            }
+            if(objLength(dataFail)>0 && error) {
+                if(transformData && typeof transformData === 'function'){
+                    dataFail = transformData(dataFail);
+                }
             error(dataFail);
+            }
     };
 
     var isValid = function(asset){
@@ -1158,7 +1169,7 @@ amp.get = function (assets, success, error, videoSort, timeout) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform, timeout);
+                jsonp(url + '.js', assets[i].name, win(url), fail(url),assets[i].transform, timeout);
         }
     }
 };
