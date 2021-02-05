@@ -14,8 +14,8 @@ To use our DI services you will need to initialise the SDK with your client ID i
 
     amp.init({
         "client_id": "playground",
-        "di_basepath": "https://classic.cdn.media.amplience.net/",
-        "err_img": "https://classic.cdn.media.amplience.net/i/playground/404"
+        "di_basepath": "https://cdn.media.amplience.net/",
+        "err_img": "https://cdn.media.amplience.net/i/playground/404"
     });
                 
 ## Retrieving Asset Data
@@ -36,7 +36,7 @@ To get JSON data from DI, you can use `amp.get(Object | Array,function,function)
             "height": 5000,
             "format": "JPEG",
             "status": "ok",
-            "url": "https://classic.cdn.media.amplience.net/i/playground/mens_winter_season",
+            "url": "https://cdn.media.amplience.net/i/playground/mens_winter_season",
             "name": "mens_winter_season"
         }
     }
@@ -56,7 +56,7 @@ Set data:
             "items": [
                 {
                     "type": "img",
-                    "src": "https://classic.cdn.media.amplience.net/i/playground/bag-3d_01-01",
+                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-01",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
@@ -64,7 +64,7 @@ Set data:
                 },
                 {
                     "type": "img",
-                    "src": "https://classic.cdn.media.amplience.net/i/playground/bag-3d_01-02",
+                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-02",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
@@ -72,14 +72,14 @@ Set data:
                 },
                 {
                     "type": "img",
-                    "src": "https://classic.cdn.media.amplience.net/i/playground/bag-3d_01-03",
+                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-03",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
                     "opaque": "true"
                 }...
             ],
-            "url": "https://classic.cdn.media.amplience.net/s/playground/bag_spin"
+            "url": "https://cdn.media.amplience.net/s/playground/bag_spin"
         }
     }
     */
