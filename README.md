@@ -1,8 +1,8 @@
-# amplience-client-sdk
+#amplience-client-sdk
 
 Amplience Client SDK is a collection of tools designed to make the consumption of the Amplience platform easier for developers.
 
-## Setup
+##Setup
 
 First download and extract the SDK. If you want to use the widgets you will also need jQuery and the jQuery UI Widget Factory. `amplience-api.js` does not require jQuery and handles the retrieval and manipulation of asset data via the Dynamic Imaging API (DI).
 
@@ -14,11 +14,11 @@ To use our DI services you will need to initialise the SDK with your client ID i
 
     amp.init({
         "client_id": "playground",
-        "di_basepath": "https://cdn.media.amplience.net/",
-        "err_img": "https://cdn.media.amplience.net/i/playground/404"
+        "di_basepath": "http://i1.adis.ws/",
+        "err_img": "http://i1.adis.ws/i/playground/404"
     });
                 
-## Retrieving Asset Data
+##Retrieving Asset Data
 
 To get JSON data from DI, you can use `amp.get(Object | Array,function,function)`. The function takes either an object or an array of objects and a success and error callback. The objects need a 'name' and 'type' (either 'i' for image, 's' for a set or 'v' for video).
 
@@ -36,7 +36,7 @@ To get JSON data from DI, you can use `amp.get(Object | Array,function,function)
             "height": 5000,
             "format": "JPEG",
             "status": "ok",
-            "url": "https://cdn.media.amplience.net/i/playground/mens_winter_season",
+            "url": "http://i1.adis.ws/i/playground/mens_winter_season",
             "name": "mens_winter_season"
         }
     }
@@ -56,7 +56,7 @@ Set data:
             "items": [
                 {
                     "type": "img",
-                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-01",
+                    "src": "http://i1.adis.ws/i/playground/bag-3d_01-01",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
@@ -64,7 +64,7 @@ Set data:
                 },
                 {
                     "type": "img",
-                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-02",
+                    "src": "http://i1.adis.ws/i/playground/bag-3d_01-02",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
@@ -72,14 +72,14 @@ Set data:
                 },
                 {
                     "type": "img",
-                    "src": "https://cdn.media.amplience.net/i/playground/bag-3d_01-03",
+                    "src": "http://i1.adis.ws/i/playground/bag-3d_01-03",
                     "width": 3398,
                     "height": 3364,
                     "format": "JPEG",
                     "opaque": "true"
                 }...
             ],
-            "url": "https://cdn.media.amplience.net/s/playground/bag_spin"
+            "url": "http://i1.adis.ws/s/playground/bag_spin"
         }
     }
     */
@@ -157,7 +157,7 @@ Video data:
     }
     */
     
-## Using DI
+##Using DI
 
 There are many DI transforms we can set, either though the JSON or on an individual URL string.
 
@@ -177,11 +177,11 @@ There are many DI transforms we can set, either though the JSON or on an individ
         'crop':'1520,60,200,400'
     })
     
-## Generating DOM
+##Generating DOM
 
 Once we have our JSON you can either use the genHTML function to create DOM, or use one of the many templating frameworks.
 
-### genHTML
+###genHTML
 
 `genHTML()` can take asset JSON data and output HTML. If also called with a DOM node passed in the generated HTML will automatically be appended to it.
 
@@ -197,7 +197,7 @@ Once we have our JSON you can either use the genHTML function to create DOM, or 
         </ul>
     </div>
 
-### Handlebars
+###Handlebars
 
 handlebars.js is a simple yet powerful templating framework.
 
@@ -244,11 +244,11 @@ Result:
     </div>
     
     
-# Using the Widgets
+#Using the Widgets
 
 Widgets are run on DOM to create interactive components. There are two main ways of using building components, either by initialising each component individually or by using data attributes in combination with ampBuild().
 
-## Individually
+##Individually
 
 Starting HTML:
 
@@ -263,7 +263,7 @@ Javascript code:
 
     $('#bike_set').ampCarousel({"autoplay":true});
 
-## Using ampBuild
+##Using ampBuild
 
 Starting HTML:
 
@@ -279,11 +279,11 @@ Javascript code:
     $('#contents').ampBuild();
                 
 
-# Putting it all together
+#Putting it all together
 
 To see examples of all this in action please visit the [playground website](http://playground.amplience.com/sdk/docs).
 
-# Licence
+#Licence
 
 Copyright 2015 Amplience
 

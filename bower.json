@@ -7,10 +7,11 @@
         "es6-promise": "~1.0.0",
         "jquery": "1.10.0",
         "jquery-ui": "1.10.0",
-        "video.js": "~5.13.0",
-        "videojs-resolution-switcher": "https://github.com/kmoskwiak/videojs-resolution-switcher.git#v0.4.2"
+        "video.js": "4.4.0"
     },
     "ignore": ["assets/*",
+        "css/*", 
+        "test/*",
         ".gitignore",
         "Gruntfile.js",
         "package.json",

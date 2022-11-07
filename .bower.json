@@ -1,0 +1,31 @@
+{
+  "name": "amplience-sdk-client",
+  "private": true,
+  "devDependencies": {
+    "jasmine-jquery": "~1.7.0",
+    "es6-promise": "~1.0.0",
+    "jquery": "1.10.0",
+    "jquery-ui": "1.10.0",
+    "video.js": "4.4.0"
+  },
+  "ignore": [
+    "assets/*",
+    "css/*",
+    "test/*",
+    ".gitignore",
+    "Gruntfile.js",
+    "package.json",
+    "sdk-client.iml",
+    "sdk-client.ipr"
+  ],
+  "homepage": "https://github.com/srobynk/amplience-sdk-client",
+  "_release": "dfd3b921a3",
+  "_resolution": {
+    "type": "branch",
+    "branch": "feature/zoom-inline-specific-centre-and-steps",
+    "commit": "dfd3b921a39ad2122efa42eebd61bff84e35cb5e"
+  },
+  "_source": "https://github.com/srobynk/amplience-sdk-client.git",
+  "_target": "feature/zoom-inline-specific-centre-and-steps",
+  "_originalSource": "https://github.com/srobynk/amplience-sdk-client.git"
+}

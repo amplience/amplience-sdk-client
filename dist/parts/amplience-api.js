@@ -1078,10 +1078,9 @@ function objLength(obj) {
  * @param {Object} assets to load in the format {'name':'asset','type':'i'}
  * @param {Function} success Callback function called on successful load
  * @param {Function} error Callback function called on unsuccessful load
- * @param {Int} integer to change timeout time
  */
-amp.get = function (assets, success, error, videoSort, timeout, transformData) {
-    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0, timeout = timeout || 60000;
+amp.get = function (assets, success, error, videoSort) {
+    var assCount = 0, failed = true, dataWin = {}, dataFail = {}, assLength = 0;
 
     var win = function(url){
         return function (name,data) {
@@ -1107,11 +1106,8 @@ amp.get = function (assets, success, error, videoSort, timeout, transformData) {
                 },function(vData) {
                     data = removeData(vData,data);
                     allLoaded();
-                },
-                    false,
-                    timeout,
-                    transformData || false);
-            } else {
+                });
+            } else { 
                 if(data.media){
                     data = setMediaCodec({'d':data})['d'];
                     if(videoSort) {
@@ -1135,18 +1131,10 @@ amp.get = function (assets, success, error, videoSort, timeout, transformData) {
         }
     };
     var done = function(){
-        if(objLength(dataWin)>0 && success) {
-            if(transformData && typeof transformData === 'function'){
-                dataWin = transformData(dataWin);
-            }
+        if(objLength(dataWin)>0 && success)
             success(dataWin);
-        }
-        if(objLength(dataFail)>0 && error) {
-            if(transformData && typeof transformData === 'function'){
-                dataFail = transformData(dataFail);
-            }
+        if(objLength(dataFail)>0 && error)
             error(dataFail);
-        }
     };
 
     var isValid = function(asset){
@@ -1162,14 +1150,14 @@ amp.get = function (assets, success, error, videoSort, timeout, transformData) {
         if(!isValid(assets))
             return;
         var url = amp.getAssetURL(assets);
-        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform, timeout);
+        jsonp(amp.getAssetURL(assets)+ '.js', assets.name, win(url), fail(url),assets.transform);
     }else{
         assLength = assets.length;
         for (var i = 0; i < assLength; i++) {
             if(!isValid(assets[i]))
                 continue;
             var url = amp.getAssetURL(assets[i]);
-            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets[i].transform, timeout);
+            jsonp(url + '.js', assets[i].name, win(url), fail(url),assets.transform);
         }
     }
 };
@@ -1253,8 +1241,8 @@ amp.clearJsonCache = function(){
     amp.jsonCache = {};
 }
 
-var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout){
-    var timeout = timeout || 60000;
+var jsonp =  amp.jsonp = function(url, name, success, error, transform){
+
     if(!transform){
         transform = '';
     } else {
@@ -1278,7 +1266,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
     // waiting for fail
     cbTimeout[name] = setTimeout(function() {
         amp.jsonReturn(name,{ status:'error',code: 404, message: "Not Found", name: name });
-    }, timeout);
+    }, 10000);
 
     var src = url + "?" + transform + buildQueryString({deep:true, timestamp: movingCacheWindow(), arg: "'"+name+"'", func:"amp.jsonReturn"});
     var script = amp.get.createScript(src, function(e) {
@@ -1294,14 +1282,13 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
     var payloadSize = 10;
 
-    amp.content = function (assets, win, fail, timeout) {
-        var timeout = timeout || 60000;
+    amp.content = function (assets, win, fail) {
 
         if (!isArray(assets)) {
             assets = [assets];
         }
 
-        payloader(assets, timeout, function(wins,fails){
+        payloader(assets,function(wins,fails){
             if(wins.length>0) {
                 win(formatPayloadResponse(wins));
             }
@@ -1333,7 +1320,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
         return amp.conf.content_basepath + 'p/' + amp.conf.client_id + '/[' + generateContentArray(assets) + '].js';
     };
 
-    var payloader = function(assets, timeout, finished) {
+    var payloader = function(assets,finished) {
         var wins = [];
         var fails = [];
         var it = Math.ceil(assets.length/payloadSize);
@@ -1358,7 +1345,7 @@ var jsonp =  amp.jsonp = function(url, name, success, error, transform, timeout)
 
         for(var i=0;i<it;i++) {
             var array = assets.slice(i*payloadSize,(i*payloadSize)+payloadSize);
-            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail, timeout);
+            amp.jsonp(buildPayloadUrl(assets),array.join(','),onWin,onFail);
         }
     };
 
@@ -1500,8 +1487,8 @@ amp.genVideoHTML = function(asset,  videoSourceSort){
             var media = sorted[m];
             var src = document.createElement('source');
             src.setAttribute('src',media.src);
-            src.setAttribute('res',media.bitrate);
-            src.setAttribute('label',media.profileLabel);
+            src.setAttribute('data-res',media.profileLabel);
+            src.setAttribute('data-bitrate',media.bitrate);
             src.setAttribute('type', amp.videoToFormat(media));
             video.appendChild(src);
         }

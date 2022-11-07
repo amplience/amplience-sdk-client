@@ -444,7 +444,6 @@
             start:1,
             preferForward: false,
             no3D: false,
-            thumbWidthExceed:0,
             gesture:{
                 enabled:false,
                 fingers:2,
@@ -459,9 +458,7 @@
             states : {
                 visible : 'amp-visible',
                 partiallyVisible: 'amp-partially-visible'
-            },
-            animationStartCallback: function(){},
-            animationEndCallback: function(){}
+            }
         },
         _getCreateOptions:function(){
             var attributes = this.element.data().ampCarousel;
@@ -477,7 +474,6 @@
             this._visible = 0;
             this._asyncMethods = [];
             this._canNext = true;
-            this._movedCounter = 0;
             var self = this;
 
             this.options.delay = Math.max(this.options.delay,this.options.animDuration+1);
@@ -496,20 +492,20 @@
             this._children.addClass('amp-slide');
             this._calcSize();
             this._chooseLayoutManager();
-
+   
             this._children.eq(this._index-1).addClass(this.options.states.selected);
 
             if(this.options.onActivate.goTo || this.options.onActivate.select ) {
                 for (var i = 0 ; i < this.count; i++) {
                     var start = function() {
                         self.moved = false;
-                        $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
+                        setTimeout(function(){
+                            $(window).on(!this.canTouch?'mousemove':'touchmove', $.proxy(move,self));
+                        },1)
+
                     };
-                    var move = function(evt) {
-                        self._movedCounter +=1;
-                        if(self._movedCounter >= 3){
-                            self.moved = true;
-                        }
+                    var move = function() {
+                        self.moved = true;
                     };
                     var activate = (function(_i){
                         var me = self;
@@ -536,7 +532,7 @@
             if(this.options.responsive){
                 $(window).bind("resize", function(_self) {
                     return function() {
-                        return setTimeout($.proxy(_self.redraw,_self),1);
+                       return setTimeout($.proxy(_self.redraw,_self),1);
                     }
                 }(self));
             }
@@ -624,37 +620,37 @@
         },
         _direction : function(index) {
 
-            if(!this.options.loop) {
-                return index>this._index;
-            }
-            var forw=0, back=0;
-            this._index = Math.min(this._index,this.count);
-            var oIndex =  this._index;
-            while(oIndex!=index) {
-                if(oIndex>this.count){
-                    oIndex = 1;
-                    continue;
-                } else {
-                    oIndex++;
-                }
-                forw++
-            }
-            oIndex = this._index;
-            while(oIndex!=index) {
-                if(oIndex<1) {
-                    oIndex = this.count;
-                    continue;
-                } else {
-                    oIndex--;
-                }
+          if(!this.options.loop) {
+              return index>this._index;
+          }
+          var forw=0, back=0;
+          this._index = Math.min(this._index,this.count);
+           var oIndex =  this._index;
+          while(oIndex!=index) {
+              if(oIndex>this.count){
+                oIndex = 1;
+                continue;
+              } else {
+                oIndex++;
+              }
+              forw++
+          }
+          oIndex = this._index;
+          while(oIndex!=index) {
+              if(oIndex<1) {
+                  oIndex = this.count;
+                  continue;
+              } else {
+                oIndex--;
+              }
                 back++;
-            }
-            if(this.options.preferForward) {
-                if(forw>1 && back >1) {
-                    return true;
-                }
-            }
-            return forw<=back;
+          }
+          if(this.options.preferForward) {
+              if(forw>1 && back >1) {
+                  return true;
+              }
+          }
+          return forw<=back;
         },
         _loopIndex : function(dir,start,count) {
             var inc = dir ? 1 : -1;
@@ -752,8 +748,8 @@
         },
         _preloadNext:function(){
             if(this.options.preloadNext) {
-                var num = this._visible + (this._index - 1);
-                var index = this._loopIndex(true,num,1);
+
+                var index = this._loopIndex(true,this._index,1);
                 var nextNextItem = this._children.eq(index-1);
                 this.callChildMethod(nextNextItem,'preload',true);
             }
@@ -764,10 +760,10 @@
 
             for (var i=0; i<count; i++) {
 
-                var eindex = dir? index+i:index-i;
-                if (eindex > this.count) {
-                    eindex = 1;
-                }
+               var eindex = dir? index+i:index-i;
+               if (eindex > this.count) {
+                   eindex = 1;
+               }
                 if(eindex < 1) {
                     eindex = this.count;
                 }
@@ -791,8 +787,6 @@
                 return;
             }
             this._containerPos = howMuch;
-
-            self.options.animationStartCallback();
 
             if(!animate) {
                 if(self._canCSS3.transform && self._canCSS3.transitionDuration) {
@@ -822,7 +816,6 @@
                     $container.css(self._canCSS3.transitionDuration,'');
                     if(onDone)
                         onDone();
-                    self.options.animationEndCallback();
                 });
             } else {
                 var anim = {};
@@ -831,31 +824,20 @@
                 } else {
                     anim.top = howMuch+'px';
                 }
-                $container.animate(anim, self.options.animDuration,'swing',function(){
-                    if(onDone)
-                        onDone();
-                    self.options.animationEndCallback();
-                });
+                $container.animate(anim, self.options.animDuration,'swing',onDone);
             }
 
         },
         _measureElement : function (index) {
             var size,
                 horz = this.options.dir == 'horz',
-                elm = this._children.eq(index),
-                clientHeight = elm[0].getBoundingClientRect().height;
+                elm = this._children.eq(index);
 
             elm.css('display','block');
             if(horz) {
                 size = elm.outerWidth(true);
             } else {
                 size = elm.outerHeight(true);
-                if(clientHeight && (size - clientHeight <= 1)){
-                    size = clientHeight;
-                }
-                if(!clientHeight){
-                    size = elm.outerHeight(true) - 1;
-                }
             }
             elm.css('display','');
             return size;
@@ -920,7 +902,7 @@
             return false;
         },
         canNext : function() {
-            return this.options.loop || (this._canNext && this._index + this._visible <= this.count);
+            return this.options.loop || (this._canNext && this._index<this.count);
         },
         redraw:function(){
             if(this._animating) {
@@ -964,9 +946,6 @@
                 if(widget.canTouch && widget.options.gesture.enabled) {
                     widget._children.on('touchstart', $.proxy(this.start,this));
                 }
-                else{
-                    widget._children.on('mousedown', $.proxy(this.start,this));
-                }
             };
 
             m.start = function(e){
@@ -993,7 +972,6 @@
                 $(window).on('touchmove',$.proxy(this.move,this));
                 $(window).on('touchcancel',$.proxy(this.stop,this));
                 $(window).on('touchend',$.proxy(this.stop,this));
-                $(window).on('mouseup',$.proxy(this.stop,this));
                 return true;
             };
 
@@ -1032,6 +1010,7 @@
 
                 if(widget.options.dir == this.moveDir){
                     return false;
+                    e.preventDefault();
                 }
             };
 
@@ -1074,17 +1053,11 @@
             };
 
             m.stop = function(e){
-                widget._movedCounter = 0;
                 $(window).off('touchmove',$.proxy(this.move,this));
                 $(window).off('touchcancel',$.proxy(this.stop,this));
                 $(window).off('touchend',$.proxy(this.stop,this));
-                $(window).off('mouseup',$.proxy(this.stop,this));
                 this.moveDir = null;
                 if(this.moved && !this.changed){
-                    if(widget.preventStop){
-                        widget.preventStop = false;
-                        return;
-                    }
                     var nearest = this.findNearest();
                     var nearestIndex = nearest.index+1;
                     if (nearestIndex == widget._index) {
@@ -1130,7 +1103,6 @@
 
                     }
                 }
-                widget.preventStop = false;
             };
 
             m.getEvent = function(e) {
@@ -1183,7 +1155,6 @@
                     this.focusNoLoop(_index,false);
                 } else {
                     this.arrange(_index);
-                    this.focusLoop(_index, false);
                 }
             };
 
@@ -1213,15 +1184,13 @@
                     var pos = this.metrics[i].pos;
                     var elm = widget._children.eq(i);
                     var elmSize = this.metrics[i].size;
-                    var bounds = parseFloat(widget._children.eq(i).css('margin-right')) * 2;
-
-                    if (pos >= target && (pos + elmSize - widget.options.thumbWidthExceed - bounds - target) <= widget._elmSize()) {
-                        widget._setState(elm, 'visible');
+                    if(pos>=target && (pos+elmSize-target)<=widget._elmSize()){
+                        widget._setState(elm,'visible');
                         visible++;
-                    } else if ((pos + elmSize - bounds > target && (pos + elmSize - bounds - target) < widget._elmSize()) || (pos > target && (pos - target) < widget._elmSize())) {
-                        widget._setState(elm, 'partial');
+                    } else if ((pos+elmSize>target && (pos+elmSize-target)<=widget._elmSize()) || (pos>=target&&(pos-target)<widget._elmSize())) {
+                        widget._setState(elm,'partial');
                     } else {
-                        widget._setState(elm, 'invisible');
+                        widget._setState(elm,'invisible');
                     }
                 }
                 widget._visible = visible;
@@ -1233,9 +1202,6 @@
                     target = dir ? 0-this.metrics[_index-1].pos : this.allSize - this.metrics[_index-1].pos,
                     diff = widget._loopCount(dir,widget._index,_index);
                 this.duplicate(dir);
-
-                this.setVisibleStates(_index,target);
-
                 widget._moveElements(target,function(){
                     widget._container[0].style[widget._canCSS3.transform] = '';
                     widget.options.dir === 'horz' ? widget._container[0].style.left = '' : widget._container[0].style.top = '';
@@ -1258,14 +1224,6 @@
                     var target = dir ?this.metrics[i].pos+this.allSize :this.metrics[i].pos-this.allSize ;
                     widget._posElm(clone,target,this.count+this.duplicated.length);
                     this.duplicated.push(clone);
-                    var borderW = elm.css('box-sizing') == 'border-box' ? elm.css('borderBottomWidth')
-                    + elm.css('borderTopWidth') : 0;
-                    var borderH = borderW ? elm.css('borderLeftWidth') + elm.css('borderRightWidth') : 0;
-                    clone.css({
-                        width: elm.width() + borderW,
-                        height: elm.height() + borderH
-                    });
-
                 }
             };
 
@@ -1588,51 +1546,14 @@
 
         },
 
-        dimensionsParams: function (imgSrc) {
-            //Dynamically assign width and/or height attributes in src attribute of an image
-            var self = this;
-            var dimensionsObj = self.element.data('amp-dimensions');
-            var src = imgSrc;
-            if (!dimensionsObj) {
-                return src;
-            }
-
-            var paramPrefix = src.indexOf('?') === -1 ? '?' : '&';
-            var paramsString = '';
-
-            $.each(dimensionsObj[0], function (key, obj) {
-                var regExp = new RegExp(paramPrefix + key + '=' + '[0-9]*', "g");
-                var duplicate = src.match(regExp);
-
-                if (duplicate && duplicate.length > 0) {
-                    $.each(duplicate, function (i, v) {
-                        src = src.replace(v, '');
-                    });
-                }
-
-                var $parent = obj.domName === 'window' ? $(window) : self.element.closest(obj.domName);
-                paramsString += paramPrefix + key + '=' + parseFloat($parent[obj.domProp](), 10);
-                paramPrefix = '&';
-
-            });
-
-            src += paramsString;
-            return src;
-        },
-
         newLoad: function() {
             var src = (this.element.attr('src') && this.element.attr('src')!="")?this.element.attr('src'):this.element.attr('data-amp-src');
-            src = this.dimensionsParams(src);
-            var ampSrcSet = this.element.attr('data-amp-srcset') || null;
 
             if($.inArray(src, this._loadedHistory)!==-1){
                 if(this.loading) {
                     this.loading.remove();
                 }
                 this.element.attr('src',src);
-                if(ampSrcSet){
-                    this.element.attr('srcset',ampSrcSet);
-                }
                 this.element.show();
                 return;
             }
@@ -1643,21 +1564,12 @@
             !this.options.insertAfter ? this.element.parent().append(this.loading) :this.options.insertAfter.prepend(this.loading);
             this.element.attr('src','');
             this.element.attr('src',src);
-
-            if(ampSrcSet){
-                this.element.attr('srcset','');
-                this.element.attr('srcset', ampSrcSet);
-            }
         },
 
         visible: function(visible) {
             if(visible && visible!= this._visible) {
-                if(this.options.preload == 'visible'){
-                    if(this.loaded || this.loading)
-                        return;
-
+                if(this.options.preload == 'visible')
                     this.newLoad();
-            }
             }
             this._visible = visible;
         },
@@ -2360,6 +2272,7 @@
                 }
                 return;
             }
+            if (visible) this._track('visible',{'visible':visible});
 
             if (visible) {
                 if(this.options.preload.image == 'visible'){
@@ -2374,8 +2287,6 @@
             } else {
                 this.zoom(false);
             }
-
-            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         preload:function() {
@@ -2845,7 +2756,6 @@
             scaleStep: 0.5,
             // toggle the zoom or not, needed when we are using the same mouse event to zoom in and out
             scaleSteps: false,
-            scaleProcess: false,
             events:{
                 zoomIn:'mouseup touchstart',
                 zoomOut:'mouseup touchend',
@@ -2889,7 +2799,6 @@
                 });
 
                 this.element.parent().on('mousedown touchstart',$.proxy(function(e){
-                    this._touchmove = false;
                     // are we panning? if so don't let mousedown trigger anything else
                     if(this.scale>1) {
                         e.stopPropagation();
@@ -2901,7 +2810,7 @@
                     if(this.scale>1) {
                         this.panner = new pan(this,e,$.proxy(function(x,y){
                             if(this.zoomArea){
-                                this.zoomArea.setPosition(x,y);
+                                this.zoomArea.setPosition(x,y, this.scale);
                             }
                         },this));
                     }
@@ -2910,7 +2819,6 @@
             }
             if(this.options.pinch) {
                 this.element.parent().on('touchstart',$.proxy(function(e){
-                    this_touchmove = false;
                     if(this.pincher) {
                         this.pincher.remove();
                         delete this.pincher;
@@ -2942,23 +2850,18 @@
             if (this._visible == visible) {
                 return;
             }
-
+            if (visible) this._track('visible',{'visible':visible});
             if (visible) {
                 if(this.options.preload=='visible') {
                     this.load();
                 }
             } else {
-                if(!this.options.preventVisibleZoomOut){
-                    this.zoomOutFull();
-                }
+                this.zoomOutFull();
             }
-
-            this._track('visible',{'visible':visible});
             this._visible = visible;
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
-                this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -2967,17 +2870,8 @@
                 if (!this.zoomArea) {
                     this.getImageSize().then($.proxy(function (size) {
                         if (!size.error) {
-                            var self = this;
-                            var img = new Image();
-                            img.src = this.element.attr('src');
-                            var $loading = $('<div class="amp-loading"></div>');
-                            this.$parent.append($loading);
-                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms, this.options);
-
-                            img.onload = function(){
-                                $loading.remove();
-                                resolve(self.zoomArea);
-                            }
+                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
+                            resolve(this.zoomArea);
                         } else {
                             reject(false);
                         }
@@ -3024,21 +2918,11 @@
         },
 
         zoomInFull:function(e) {
-            this.setScale(this.options.scaleMax);
+            this.setScale(this.options.scaleMax, e);
             this._track('zoomedInFull',{domEvent:e,scale:this.options.scaleMax,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
 
-        zoomIn: function (e) {
-            var self = this;
-            if (!self.zoomArea) {
-                self._setupZoomArea().then(function(area){
-                    if(!area){
-                        return;
-                    }
-                    self.zoomIn(e);
-                });
-                return false;
-            }
+        zoomIn: function (e, step) {
             if(!this.options.scaleSteps){
                 if(this.scale != 1){
                     return;
@@ -3052,22 +2936,13 @@
                     return;
                 }
             }
-
-            if (self.zoomArea && self.zoomArea.animating) {
-                return;
-            }
-
-            if(this.scale == this.options.scaleMax) {
-                if (this.options.events.zoomIn) {
-                    self.zoomArea.$container.off(this.options.events.zoomIn,this.zoomIn);
-                    self.isZoomIn = false;
-                }
-            }
-
             var currScale = this.scale;
-
             if(this.options.scaleSteps) {
-                this.scale+=this.options.scaleStep;
+                if(typeof step !== 'undefined') {
+                    this.scale = step;
+                } else {
+                    this.scale+=this.options.scaleStep;
+                }
                 this.scale = Math.min(this.scale,this.options.scaleMax);
             } else {
                 this.scale = this.options.scaleMax;
@@ -3077,31 +2952,14 @@
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale).then(function(){
-                // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
-                setTimeout($.proxy(function(){
-                    if (!self.isMoveOn  && self.options.events.move) {
-                        self.zoomArea.$container.on(this.options.events.move, $.proxy(self._setPos,self));
-                        self.isMoveOn = true;
-                    }
-                    if (self.options.scaleProcess) {
-                        if(!self.options.scaleSteps || self.scale == self.options.scaleMax) {
-                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
-                        } else {
-                            if (!self.isZoomIn) {
-                                self.zoomArea.$container.on(this.options.events.zoomIn,$.proxy(self.zoomIn,self));
-                                self.isZoomIn = true;
-                            }
-                        }
-                    } else {
-                        if(!self.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
-                            self.zoomArea.$container.on(self.options.events.zoomOut, $.proxy(self.zoomOut, self));
-                        }
-                    }
-
-                },self),500);
-            });
-
+            this.setScale(this.scale, e);
+            // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
+            setTimeout($.proxy(function(){
+                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
+                if(!this.options.scaleSteps) { // put inside the if as if we use steps we don't want it to zoom out (mostly for spin)
+                    $(document).on(this.options.events.zoomOut, $.proxy(this.zoomOut, this));
+                }
+            },this),1);
         },
 
         zoomInClick: function (e) {
@@ -3117,43 +2975,36 @@
                 return;
             }
             this._track('zoomedIn',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
-            this.setScale(this.scale);
+            this.setScale(this.scale, e);
             // need to take these outside of execution because if we have the same event for zoomIn and zoomOut both would trigger due to bubbling
             setTimeout($.proxy(function(){
-                self.zoomArea.$container.on(this.options.events.move, $.proxy(this._setPos,this));
+                $(document).on(this.options.events.move, $.proxy(this._setPos,this));
             },this),1);
         },
 
-        setScale : function(s) {
+        setScale : function(s, e) {
             this.scale = s;
-            return this._setupZoomArea().then($.proxy(function(area){
+            this._setupZoomArea().then($.proxy(function(area){
                 if(!area){
                     return;
                 }
-                area.setScale(this.scale);
+
+                if(typeof e !== 'undefined') {
+                    area.setScale(this.scale, this._getPercentagePos(e));
+                } else {
+                    area.setScale(this.scale);
+                }
+
                 this._invalidateParentSize();
-//                this._setPos(e);
 
             },this));
         },
         _setPos : function(e){
-            if(e.type === 'touchmove'){
-                this._touchmove = true;
-            }
             this._track('settingPos',{domEvent:e});
             var pos = e?this._getPercentagePos(e):{x:0.5,y:0.5};
-            this.zoomArea.setPosition(pos.x,pos.y)
+            this.zoomArea.setPosition(pos.x,pos.y,this.scale);
         },
         zoomOut:function(e) {
-            this.zoomArea.allowClone = false;
-            if(this._touchmove) {
-                return false;
-            }
-
-            if (this.zoomArea && this.zoomArea.animating) {
-                return;
-            }
-
             var currScale = this.scale;
             if(this.options.scaleSteps) {
                 this.scale -= this.options.scaleStep;
@@ -3166,15 +3017,13 @@
             }
             if(this.scale == 1) {
                 if (this.options.events.move) {
-                    this.zoomArea.$container.off(this.options.events.move, this._setPos);
-                    this.isMoveOn = false;
+                    $(document).off(this.options.events.move, this._setPos);
                 }
 
                 if (this.options.events.zoomOut) {
-                    this.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
+                    $(document).off(this.options.events.zoomOut,this.zoomOut);
                 }
             }
-
             this.zoomArea.setScale(this.scale);
             this._track('zoomedOut',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -3184,15 +3033,14 @@
                 return;
             }
             if (this.options.events.move) {
-                self.zoomArea.$container.off(this.options.events.move, this._setPos);
+                $(document).off(this.options.events.move, this._setPos);
             }
 
             if (this.options.events.zoomOut) {
-                self.zoomArea.$container.off(this.options.events.zoomOut,this.zoomOut);
+                $(document).off(this.options.events.zoomOut,this.zoomOut);
             }
 
             this.scale = 1;
-
             this.zoomArea.setScale(1);
             this._track('zoomedOutFull',{domEvent:e,scale:this.scale,scaleMax:this.options.scaleMax,scaleStep:this.options.scaleStep});
         },
@@ -3280,7 +3128,7 @@
         var x = Math.abs(touches[0].pageX-touches[1].pageX),
             y = Math.abs(touches[0].pageY-touches[1].pageY);
         return Math.sqrt(
-            (x * x) + (y * y)
+                (x * x) + (y * y)
         );
     };
 
@@ -3325,9 +3173,6 @@
         this.zoomArea = zoom.zoomArea;
         this.cb = cb;
         this.element = zoom.element;
-        if(!this.zoomArea.newSize){
-            this.zoomArea.newSize = {'x':this.zoomArea.$source.width(), 'y':this.zoomArea.$source.height()};
-        }
         this.currentPixPos = this.zoomArea.getPixPos();
         $(document).on('mousemove touchmove', $.proxy(this.move,this));
         $(document).on('mouseup touchend', $.proxy(this.end,this));
@@ -3365,13 +3210,10 @@
     };
 
 
-    var zoomArea = function($source,$area,originalSize,transforms, options) {
-        this.options = options;
+    var zoomArea = function($source,$area,originalSize,transforms) {
         this.animating = false;
-        this._allowChangeClone = true;
-        this.isFF = navigator.userAgent.toLowerCase().search("firefox") > -1;
         this.transforms = transforms;
-        this.initialSrc = $source[0].src;
+        this.initialSrc = $source.attr('src');
         this.scale = 1;
         this.$area = $area;
         this.$source = $source;
@@ -3387,20 +3229,12 @@
     };
 
     zoomArea.prototype.createContainer = function() {
-        var self = this;
         this.$container = $('<div class="amp-zoomed-container"></div>');
-        this.$preloader = new Image();
-        $(this.$preloader).on('load', function(){
-            //Assign preloader loaded Boolean to true
-            self._preloaderImgLoaded = true;
-            if (self.allowClone && !self.animating) {
-                self.updateImageSrc(true);
-            }
-        });
-        this.$zoomed = $('<img class="amp-zoomed" style="z-index:2;" src=""/>');
-        this.$zoomedClone = $('<img class="amp-zoomed-clone" style="z-index:2;" src=""/>');
-        this.$container.append(this.$zoomedClone);
+        this.$preloader = $('<img style="display:none">');
+        this.$preloader.on('load', $.proxy(this.setImage,this));
+        this.$zoomed = $('<img class="amp-zoomed" src=""/>');
         this.$container.append(this.$zoomed);
+        this.$container.append(this.$preloader);
         this.$area.append(this.$container);
         this.$container.css({
             position:'absolute',
@@ -3412,18 +3246,17 @@
     };
 
     zoomArea.prototype.invalidatePosition = function() {
-        this.setPosition(this.posPercentageX,this.posPercentageY);
+        this.setPosition(this.posPercentageX,this.posPercentageY, this.scale);
     };
 
-    zoomArea.prototype.setPosition = function(x,y) {
+    zoomArea.prototype.setPosition = function(x,y, scale) {
         if(this.animating)
             return;
-
-        if(this.$zoomed.width()<=this.$area.width()) {
+        if(this.$zoomed.width() * scale <= this.$area.width()) {
             x = 0.5;
         }
 
-        if(this.$zoomed.height()<=this.$area.height()) {
+        if(this.$zoomed.height() * scale <=this.$area.height()) {
             y = 0.5;
         }
         this.posPercentageX = x;
@@ -3432,8 +3265,6 @@
         y = Math.min(1,Math.max(0,y));
         this.$zoomed.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
         this.$zoomed.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
-        this.$zoomedClone.css('left',(0-((this.$zoomed.width()-this.$area.width())*x))+'px');
-        this.$zoomedClone.css('top',(0-((this.$zoomed.height()-this.$area.height())*y))+'px');
     };
 
     zoomArea.prototype.getPixPos = function(x,y) {
@@ -3461,76 +3292,47 @@
             pos.y = this.getPixPos(0.5,0.5).y;
         }
 
-        var animConfig = {'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'};
-
-        this.$zoomed.animate(animConfig, 500);
-        this.$zoomedClone.animate(animConfig, 500);
-
-        setTimeout($.proxy(function(){
+        this.$zoomed.animate({'width':size.x,'height':size.y,'left':pos.x+'px','top':pos.y+'px'},500, $.proxy(function(){
+            this.animating = false;
             if (cb) {
                 cb();
             }
-            this.animating = false;
-        },this),this.isFF ? 1000 : 600);
-    };
-
-    zoomArea.prototype.updateImageSrc = function(scaleIncreased){
-        var self = this;
-        if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
-            return false;
-        }
-        self.setImage();
+        },this));
 
     };
 
-    zoomArea.prototype.setScale = function(scale,cb){
-        var self = this;
-        var scaleIncreased = scale > this.scale;
+    zoomArea.prototype.setScale = function(scale,pos){
         if(scale == this.scale) {
             return;
         }
-
-        if(!scaleIncreased){
-            this.allowClone = false;
-        }
-        else{
-            this.allowClone = true;
-        }
-
-        self._preloaderImgLoaded = false;
-
         if((scale < this.scale) && scale == 1) {
             this.newSize = {'x':this.$source.width(), 'y':this.$source.height()};
         } else {
             this.newSize = {'x':this.$source.width()*scale, 'y':this.$source.height()*scale};
         }
         if (this.scale==1) {
-            this.$zoomed.attr('src',this.$source[0].src);
+            this.$zoomed.attr('src',this.$source.attr('src'));
             if(scale > this.scale) {
                 this.$zoomed.width(this.$source.width());
                 this.$zoomed.height(this.$source.height());
-                this.$zoomedClone.width(this.$source.width());
-                this.$zoomedClone.height(this.$source.height());
             }
-            this.setPosition(0.5,0.5);
+            if(typeof pos !== 'undefined') {
+                this.setPosition(pos.x, pos.y, scale);
+            } else {
+                this.setPosition(0.5, 0.5, scale);
+            }
             this.show();
         }
         if(scale==1){
-            this.animate(this.newSize,this.getPixPos(), function(){
-                self.hide();
-                self.updateImageSrc(false);
-            });
+            this.animate(this.newSize,this.getPixPos(), $.proxy(this.hide,this));
         } else {
-            this.animate(this.newSize, this.getPixPos(), function(){
-                self.updateImageSrc(scaleIncreased);
-            });
+            this.animate(this.newSize,this.getPixPos());
         }
         this.scale = scale;
         this.invalidateImageURL({'x':this.originalSize.x*scale, 'y':this.originalSize.y*scale});
     };
 
     zoomArea.prototype.show = function(){
-        this.invalidatePosition();
         $(window).off('resize', this.invalidatePosition);
         $(window).on('resize', $.proxy(this.invalidatePosition,this));
         this.$container.show();
@@ -3542,7 +3344,6 @@
     };
 
     zoomArea.prototype.invalidateImageURL = function(size) {
-        var self = this;
         var templateQueryParam = '';
 
         if (this.transforms && this.transforms.length) {
@@ -3554,47 +3355,14 @@
         if(size.x == 0 || size.y ==0) {
             src='';
         }
-        self.$preloader = new Image();
-        self._preloaderImgLoaded = true;
-        self.$preloader.setAttribute('src', src);
-
+        this.$preloader.attr('src',src);
     };
     zoomArea.prototype.setImage = function() {
-        var self = this;
-        var loaded;
-        var previousSrc = self.$zoomed.attr('src');
-
-        if(self._allowChangeClone){
-            self.$zoomedClone.attr('src', previousSrc);
-        }
-
-        if(self.$preloader.complete && self.$preloader.naturalWidth && self.$preloader.naturalWidth > 0){
-            if(loaded){
-                return;
-            }
-
-            setTimeout(function(){
-                self.$zoomed.attr('src', self.$preloader.src);
-            }, self.isFF ? 1000 : 10);
-            loaded = true;
-        }
-
-        else{
-            self.$preloader.onload = function(){
-                if(loaded){
-                    return;
-                }
-                self.$zoomed.attr('src', self.$preloader.src);
-                loaded = true;
-            };
-        }
-
-        self._allowChangeClone = false;
+        this.$zoomed.attr('src',this.$preloader.attr('src'));
     };
 
 
 }(jQuery));
-
 (function ($) {
 
     $.widget("amp.ampVideo", {
@@ -3602,7 +3370,7 @@
             autoplay: false,
             loop: false,
             muted: false,
-            skin: '',
+            skin: 'amp-video-skin',
             responsive: true,
             preload: 'auto',
             pauseOnHide: true,
@@ -3636,7 +3404,7 @@
             this.element.addClass('amp amp-video');
             var video = this.element.find('video');
             var self = this;
-            video.addClass('video-js' + ' ' + this.options.skin + ' ' + 'vjs-big-play-centered');
+            video.addClass('video-js' + ' ' + this.options.skin);
             if(videojs) {
                 videojs.options.flash.swf = (this.options.swfUrl +"video-js.swf") || "../../assets/video-js.swf";
 
@@ -3663,11 +3431,6 @@
             }
 
             this._player.ready(function () {
-
-                if(this.options_.muted){
-                    this.volume(0);
-                }
-
                 self._ready = true;
                 var vid = self.element.find('.vjs-tech');
                 var interval = setInterval(function () {
@@ -3683,25 +3446,6 @@
                 }, 200);
                 if (self.options.autoplay)
                     self.state(self._states.playing);
-
-
-                if (self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default) {
-                    self._player.on('ready', function () {
-                        self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
-                        self._allowResolutionChange = false;
-                    });
-                    self._player.on('resolutionchange', function () {
-                        if (self._player.paused()) {
-                            if (self._allowResolutionChange) {
-                                self._player.play();
-                                self._player.pause();
-                            }
-                            if (self._player.currentTime() > 0.5) {
-                                self._allowResolutionChange = true;
-                            }
-                        }
-                    });
-                }
 
                 this.on("play", function (e) {
                     if (!self.softPlay || !self.options.enableSoftStates) {
@@ -3762,12 +3506,10 @@
                         self._player.currentTime(0);
                         self.softPlay = true;
                         self._player.play();
-                        self._track("ended", null);
                         self._track("looped", { count: ++self._loopCount });
                     }else{
                         self.state(self._states.stopped);
                         self._track("ended", null);
-                        self._track("stopped", null);
                     }
                 });
                 self._track("created",{player:this,duration: self.duration});
@@ -3777,9 +3519,8 @@
             if(visible == this._visible)
                 return;
 
-            this._track('visible',{'visible':visible});
-
             if (visible) {
+                this._track('visible',{'visible':visible});
                 this._calcSize();
             } else {
                 if(this._states.playing == this.state() || this._states.buffering== this.state()) {
@@ -3855,6 +3596,7 @@
         state: function(state){
             if (state === void 0)
                 return this._currentState;
+
             this._currentState = state;
             this._trigger("stateChange", null, {state:state})
         },
@@ -3866,13 +3608,12 @@
         },
         _destroy: function() {
             this._player.dispose();
-            this._player = null;
             this.element[0].outerHTML = this._savedHTML;
         },
         _sanitisePlugins: function(plugins){
             // setting plugins to false doesn't deactivate, remove instead
-            if (plugins && plugins['videoJsResolutionSwitcher'] == false){
-                delete plugins['videoJsResolutionSwitcher'];
+            if (plugins && plugins['resolutions'] == false){
+                delete plugins['resolutions'];
             }
             return plugins;
         }
@@ -3916,8 +3657,7 @@
             play: {
                 onLoad:false,
                 onVisible:false,
-                repeat:1,
-                delay: 10
+                repeat:1
             },
             dragDistance:200,
             lazyLoad:false
@@ -3934,7 +3674,6 @@
             var self = this,
                 children = this._children = this.element.children(),
                 count = this._count = this.element.children().length;
-            this.isWebkit = /Chrome|Safari/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
             this.$document = $(document);
             this.options.friction = Math.min(this.options.friction,0.999);
             this.options.friction = Math.max(this.options.friction,0);
@@ -3952,19 +3691,9 @@
             this.toLoadCount =  this.imgs.length;
             this.loadedCount = 0;
             children.addClass('amp-frame');
-            var currentChild =  children.eq(this._index-1);
-            var currentChildClone = currentChild.clone();
-            currentChildClone.addClass('amp-frame-clone');
-            if (this.isWebkit){
-                children.css({'display':'none'});
-                currentChild.css('display','block');
-            } else {
-                children.css({'z-index':-1});
-                currentChild.css('z-index', 1);
-            }
-
-            this.element.append(currentChildClone);
-            currentChild.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
+            children.css({'display':'none'});
+            children.eq(this._index-1).css('display','block');
+            children.eq(this._index-1).addClass(this.options.states.selected + ' ' +this.options.states.seen);
             setTimeout(function(_self) {
                 return function() {
                     return _self._calcSize();
@@ -4038,21 +3767,18 @@
             return false;
         },
         visible:function(visible) {
-            var self = this;
-            if (visible != self._visible) {
-                self._super(visible);
+            if (visible != this._visible) {
+                this._super(visible);
                 if(visible) {
-                    if(self.options.preload=='visible') {
-                        self._startPreload();
+                    if(this.options.preload=='visible') {
+                        this._startPreload();
                     }
 
                     if(this.options.preload == 'none'){
-                        self._startPreload(self._index);
+                        this._startPreload(this._index);
                     }
-                    if(self.options.play.onVisible && self._loaded) {
-                        setTimeout(function() {
-                            self.playRepeat(self.options.play.repeat);
-                        }, self.options.play.delay);
+                    if(this.options.play.onVisible && this._loaded) {
+                        this.playRepeat(this.options.play.repeat);
                     }
                 }
             }
@@ -4139,7 +3865,7 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom'] || components['ampAmpZoom']){
+                if(components['amp-ampZoom']){
                     child.ampZoom({'loaded':null});
                 }else{
                     child.ampImage({'loaded':null});
@@ -4151,14 +3877,10 @@
                 var child = $(imgs[m]),
                     components = child.data();
 
-                if(components['amp-ampZoom']  || components['ampAmpZoom']){
+                if(components['amp-ampZoom']){
                     child.ampZoom({'loaded':onLoad});
                     child.ampZoom('load', this.options.preload);
                 }else{
-                    var imgComponent = components['amp-ampImage'] || components['ampAmpImage'];
-                    if(typeof imgComponent !== 'undefined' && imgComponent.loaded){
-                        onLoad();
-                    }
                     child.ampImage({'loaded':onLoad});
                     child.ampImage('load', this.options.preload);
                 }
@@ -4220,15 +3942,15 @@
                     return self._endDrag(e,o,mx,my,i);
                 }
             }(this._index);
-                this.$document.on(this.options.events.move, m);
-                this.$document.on(this.options.events.end,u);
+            this.$document.on(this.options.events.move, m);
+            this.$document.on(this.options.events.end,u);
 
             this._mouseMoveInfo = [{e:e,o:o,mx:mx,my:my,sindex:this._index}];
             if(window.navigator.userAgent.indexOf("MSIE ")>0){
                 return false;
             }
             this.element.find('.amp-spin').each(function(i, element){
-                var childSpin = $(element).data()['amp-ampSpin'] || $(element).data()['ampAmpSpin'];
+                var childSpin = $(element).data()['ampAmpSpin'];
                 if(childSpin && childSpin._startDrag){
                     childSpin._startDrag(e);
                 }
@@ -4251,6 +3973,7 @@
                 m = this._mouseMoveInfo,
                 mm = {e:e,mx:mx,my:my};
 
+            if(!this.moveDir) {
                 if(Math.abs(dx)< Math.abs(dy)) {
                     this.moveDir = 'vert';
                 } else if (Math.abs(dx)> Math.abs(dy)){
@@ -4258,6 +3981,10 @@
                 } else {
                     this.moveDir = this.options.orientation;
                 }
+            }
+            if(this.options.orientation != this.moveDir){
+                return true;
+            }
             this._mouseMoveInfo.push(mm);
             if (this._mouseMoveInfo.length > 2) {
                 this._mouseMoveInfo.shift();
@@ -4265,8 +3992,8 @@
             this._moveSpin(this.options.orientation == 'horz' ? dx : dy,e,sindex);
 
             if(this.options.orientation == this.moveDir){
-                e.preventDefault();
                 return false;
+                e.preventDefault();
             }
         },
 
@@ -4307,8 +4034,8 @@
             this._ended = true;
 
             this._track("endMove",{'domEvent': e});
-                this.$document.off(this.options.events.end, this._ubind);
-                this.$document.off(this.options.events.move, this._mbind);
+            this.$document.off(this.options.events.end,this._ubind);
+            this.$document.off(this.options.events.move,this._mbind);
             clearInterval(this._timer);
 
             this._setCursor(this.options.cursor.inactive);
@@ -4321,13 +4048,14 @@
                 // we can't have inf speed or zero speed
                 if(distance==0||time==0)
                     return;
+
                 var speed = distance/time,
                     travelSpeed = speed,
                     friction = this.options.friction,
                     totalDistance = this.options.orientation == 'horz' ? m[1].mx -  sx : m[1].my -  sy,
                     travelDistance = 0,
-                    travelTime = 0,
-                    timeInterval = 10; // time interval in ms
+                    travelTime = 0;
+
                 // Meeting the min distance requirement
                 if(Math.abs(totalDistance) < this.options.minDistance)
                     return;
@@ -4455,19 +4183,16 @@
             var items = this.element,
                 currItem  = items.children('li').eq(this._index - 1),
                 nextItem = items.children('li').eq(_index - 1);
-            if(this._index == _index){
+
+            if (this._index == _index) {
                 return;
             }
-            nextItem.addClass(this.options.states.selected + ' ' +this.options.states.seen);
-            if (this.isWebkit){
-                nextItem.css('display', 'block');
-                currItem.css('display', 'none');
-            }else{
-                nextItem.css('zIndex', 1);
-                currItem.css('zIndex', -1);
-            }
+
+            // toggle item visibility
+            nextItem.addClass(this.options.states.selected + ' ' + this.options.states.seen);
+            nextItem.css('display', 'block');
             currItem.removeClass(this.options.states.selected);
-            this._setIndex(_index);
+            currItem.css('display', 'none');
 
             // set the index, but ignore visibility toggling as this is already done
             this._setIndex(_index, true);
@@ -4507,3 +4232,441 @@
 
 
 }( jQuery ));
+// Resolution switching support for videojs
+//
+// In this plugin I'm really going out of my way to *not* override the
+// core videojs namespace and to *not* change the core API.  As a
+// result this plugin is not as efficient as it might be.  It
+// initializes itself *for each player* as scoped variables inside the
+// plugin closure and grafts itself on to *the instance on which it was
+// called* rather than on the videojs player prototype.  I don't expect
+// this to be a big deal for anybody.
+if(typeof videojs != 'undefined') {
+videojs.plugin('resolutions', function(options) {
+    var player = this;
+    if(typeof vjs == 'undefined') {
+        return;
+    }
+    // 'reduce' utility method
+    // @param {Array} array to iterate over
+    // @param {Function} iterator function for collector
+    // @param {Array|Object|Number|String} initial collector
+    // @return collector
+    vjs.reduce = function(arr, fn, init, n) {
+        if (!arr || arr.length === 0) { return; }
+        for (var i=0,j=arr.length; i<j; i++) {
+            init = fn.call(arr, init, arr[i], i);
+        }
+        return init;
+    };
+
+    this.resolutions_ = {
+        options_: {},
+
+        // takes an existing stream and stops the download entirely
+        // without killing the player or disposing of the tech
+        stopStream: function(){
+            switch(player.techName){
+                case "Html5":
+                    break;
+                case "Flash":
+                    player.tech.el_.vjs_stop();
+                    break;
+            }
+
+            // this may cause flash or the native player to emit errors but
+            // they are harmless
+            player.src("");
+        },
+
+        // it is necessary to remove the sources from the DOM after
+        // parsing them because otherwise the native player may be
+        // inclined to stream both sources
+        removeSources: function(el){
+            var videoEl = player.el_.getElementsByTagName("video")[0];
+
+            if (player.techName !== "Html5" || !videoEl) return;
+
+            var srcs = videoEl.getElementsByTagName("source");
+            for(var i=0;i<srcs.length;i++){
+                videoEl.removeChild(srcs[i]);
+            }
+        },
+
+        // buckets all parsed sources by their type ("video/mp4", for example)
+        // @param {Array} array of sources:
+        // [
+        //   {
+        //     "data-res": "HD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_hd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_sd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/ogv",
+        //     "src": "http://some_video_url_sd"
+        //   }
+        // ]
+        // @return sources grouped by type:
+        // {
+        //   "video/mp4": [
+        //       {
+        //           "data-res": "HD",
+        //           "type": "video/mp4",
+        //           "src": "http://some_video_url_hd"
+        //       },
+        //       {
+        //           "data-default": "true",
+        //           "data-res": "SD",
+        //           "type": "video/mp4",
+        //           "src": "http://some_video_url_sd"
+        //       }
+        //   ]
+        //   "video/ogv": [
+        //       {
+        //           "data-res": "SD",
+        //           "type": "video/ogv",
+        //           "src": "http://some_video_url_sd"
+        //       }
+        //   ]
+        // }
+        bucketByTypes: function(sources){
+            return vjs.reduce(sources, function(init, val, i){
+                (init[val.type] = init[val.type] || []).push(val);
+                return init;
+            }, {}, player);
+        },
+
+        // takes parsed sources and selects the most appropriate source
+        // taking into account resolution, technology support, and the
+        // user's previous selections.  also indexes the sources
+        // @param {Array} array of sources:
+        // [
+        //   {
+        //     "data-res": "HD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_hd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_sd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/ogv",
+        //     "src": "http://some_video_url_sd"
+        //   }
+        // ]
+        // @return {Object} single source:
+        // {
+        //  "data-res": "HD",
+        //  "type": "video/mp4",
+        //  "src": "http://some_video_url_jd",
+        //  "index": 0
+        // }
+        selectSource: function(sources){
+            this.removeSources();
+
+            var sourcesByType = this.bucketByTypes(sources);
+            var typeAndTech   = this.selectTypeAndTech(sources);
+
+            if (!typeAndTech) return false;
+
+            // even though we choose the best resolution for the user here, we
+            // should remember the resolutions so that we can potentially
+            // change resolution later
+            this.options_['sourceResolutions'] = sourcesByType[typeAndTech.type];
+
+            return this.selectResolution(this.options_['sourceResolutions']);
+        },
+
+        // takes parsed sources and returns the most appropriate
+        // technology and video type
+        // @param {Array} array of sources:
+        // [
+        //   {
+        //     "data-res": "HD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_hd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_sd"
+        //   },
+        //   {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/ogv",
+        //     "src": "http://some_video_url_sd"
+        //   }
+        // ]
+        // @return {Object} type/tech:
+        // {
+        //  "type": "video/ogv",
+        //  "tech": "Html5"
+        // }
+        selectTypeAndTech: function(sources) {
+            var techName;
+            var tech;
+
+            for (var i=0,j=player.options_['techOrder'];i<j.length;i++) {
+                techName = videojs.capitalize(j[i]);
+                tech     = window['videojs'][techName];
+
+                // Check if the browser supports this technology
+                if (tech.isSupported()) {
+                    // Loop through each source object
+                    for (var a=0,b=sources;a<b.length;a++) {
+                        var source = b[a];
+                        // Check if source can be played with this technology
+                        if (tech['canPlaySource'](source)) {
+                            return { type: source.type, tech: techName };
+                        }
+                    }
+                }
+            }
+        },
+
+        // takes an array of sources of homogeneous type (ie. a complete
+        // "bucket" from the output of bucketByTypes) and returns the best
+        // source, taking into account the user's previous preferences
+        // stored in local storage
+        // @param {Array} homogeneous sources:
+        // [
+        //   {
+        //       "data-res": "HD",
+        //       "type": "video/mp4",
+        //       "src": "http://some_video_url_hd"
+        //   },
+        //   {
+        //       "data-default": "true",
+        //       "data-res": "SD",
+        //       "type": "video/mp4",
+        //       "src": "http://some_video_url_sd"
+        //   }
+        // ]
+        // @return {Object} singular best source:
+        // {
+        //     "data-default": "true",
+        //     "data-res": "SD",
+        //     "type": "video/mp4",
+        //     "src": "http://some_video_url_sd"
+        //     "index": 1
+        // }
+        selectResolution: function(typeSources) {
+            var defaultRes = 0;
+            var supportsLocalStorage = !!window.localStorage;
+
+            // check to see if any sources are marked as default
+            videojs.obj.each(typeSources, function(i, s){
+                // add the index here so we can reference it later
+                s.index = parseInt(i, 10);
+
+                if (s['data-default']) defaultRes = s.index;
+            }, player);
+
+            // if the user has previously selected a preference, check if
+            // that preference is available. if not, use the source marked
+            // default
+            var preferredRes = defaultRes;
+
+            // trying to follow the videojs code conventions of if statements
+            if (supportsLocalStorage){
+                var storedRes = parseInt(window.localStorage.getItem('videojs_preferred_res'), 10);
+
+                if (!isNaN(storedRes))
+                    preferredRes = storedRes;
+            }
+
+            var maxRes    = (typeSources.length - 1);
+            var actualRes = preferredRes > maxRes ? maxRes : preferredRes;
+
+            return typeSources[actualRes];
+        }
+    };
+
+    // convenience method
+    // @return {String} cached resolution label:
+    // "SD"
+    player.resolution = function(){
+        return this.cache_.src.res;
+    };
+
+    // takes a source and switches the player's stream to it on the fly
+    // @param {Object} singular source:
+    // {
+    //     "data-default": "true",
+    //    "data-res": "SD",
+    //     "type": "video/mp4",
+    //     "src": "http://some_video_url_sd"
+    // }
+    player.changeResolution = function(new_source){
+        // has the exact same source been chosen?
+        if (this.cache_.src === new_source.src){
+            this.trigger('resolutionchange');
+            return this; // basically a no-op
+        }
+
+        // remember our position and playback state
+        var curTime      = this.currentTime();
+        var remainPaused = this.paused();
+
+        // pause playback
+        this.pause();
+
+        // attempts to stop the download of the existing video
+        this.resolutions_.stopStream();
+
+        // HTML5 tends to not recover from reloading the tech but it can
+        // generally handle changing src.  Flash generally cannot handle
+        // changing src but can reload its tech.
+        if (this.techName === "Html5"){
+            this.src(new_source.src);
+        } else {
+            this.loadTech(this.techName, {src: new_source.src});
+        }
+
+        // when the technology is re-started, kick off the new stream
+        this.ready(function() {
+            this.one('loadeddata', vjs.bind(this, function() {
+                this.currentTime(curTime);
+            }));
+
+            this.trigger('resolutionchange');
+
+            if (!remainPaused) {
+                this.load();
+                this.play();
+            }
+
+            // remember this selection
+            vjs.setLocalStorage('videojs_preferred_res', parseInt(new_source.index, 10));
+        });
+    };
+
+    /* Resolution Menu Items
+     ================================================================================ */
+    var ResolutionMenuItem = videojs.MenuItem.extend({
+        init: function(player, options){
+            // Modify options for parent MenuItem class's init.
+            options['label'] = options.source['data-res'];
+            videojs.MenuItem.call(this, player, options);
+
+            this.source = options.source;
+            this.resolution = options.source['data-res'];
+
+            this.player_.one('loadstart', vjs.bind(this, this.update));
+            this.player_.on('resolutionchange', vjs.bind(this, this.update));
+        }
+    });
+
+    ResolutionMenuItem.prototype.onClick = function(){
+        videojs.MenuItem.prototype.onClick.call(this);
+        this.player_.changeResolution(this.source);
+    };
+
+    ResolutionMenuItem.prototype.update = function(){
+        var player = this.player_;
+        if ((player.cache_['src'] === this.source.src)) {
+            this.selected(true);
+        } else {
+            this.selected(false);
+        }
+    };
+
+    /* Resolutions Button
+     ================================================================================ */
+    var ResolutionButton = videojs.MenuButton.extend({
+        init: function(player, options) {
+            videojs.MenuButton.call(this, player, options);
+
+            if (this.items.length <= 1) {
+                this.hide();
+            }
+        }
+    });
+
+    ResolutionButton.prototype.sourceResolutions_;
+
+    ResolutionButton.prototype.sourceResolutions = function() {
+        return this.sourceResolutions_;
+    };
+
+    ResolutionButton.prototype.onClick = function(e){
+        // Only proceed if the target of the click was a DIV (just the button and its inner div, not the menu)
+        // This prevents the menu from opening and closing when one of the menu items is clicked.
+        if (e.target.className.match(/vjs-control-content/)) {
+
+            // Toggle the 'touched' class
+            this[this.el_.className.match(/touched/) ? "removeClass" : "addClass"]("touched");
+        } else {
+
+            // Remove the 'touched' class from all control bar buttons with menus to hide any already visible...
+            var buttons = $('.vjs-menu-button');
+            for(var i=0;i<buttons.length;i++){
+                videojs.removeClass(buttons[i], 'touched');
+            }
+
+            this.removeClass('touched');
+        }
+    };
+
+    ResolutionButton.prototype.createItems = function(){
+        var resolutions = this.sourceResolutions_ = this.player_.resolutions_.options_['sourceResolutions'];
+        var items = [];
+        for (var i = 0; i < resolutions.length; i++) {
+            items.push(new ResolutionMenuItem(this.player_, {
+                'source': this.sourceResolutions_[i]
+            }));
+        }
+        return items;
+    };
+
+    /**
+     * @constructor
+     */
+    var ResolutionsButton = ResolutionButton.extend({
+        /** @constructor */
+        init: function(player, options, ready){
+            ResolutionButton.call(this, player, options, ready);
+            this.el_.setAttribute('aria-label','Resolutions Menu');
+            this.el_.setAttribute('id',"vjs-resolutions-button");
+        }
+    });
+
+    ResolutionsButton.prototype.kind_ = 'resolutions';
+    ResolutionsButton.prototype.buttonText = 'Resolutions';
+    ResolutionsButton.prototype.className = 'vjs-resolutions-button';
+
+    // Add Button to controlBar
+    videojs.obj.merge(player.controlBar.options_['children'], {
+        'resolutionsButton': {}
+    });
+
+    // let's get the party started!
+    // we have to grab the parsed sources and select the source with our
+    // resolution-aware source selector
+    var source = player.resolutions_.selectSource(player.options_['sources']);
+
+    // when the player is ready, add the resolution button to the control bar
+    player.ready(function(){
+        player.changeResolution(source);
+        var button = new ResolutionsButton(player);
+        player.controlBar.addChild(button);
+        delete player.controlBar.options_['children'].resolutionsButton
+    });
+});
+}
+
